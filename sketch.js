@@ -1,14 +1,51 @@
+
+
+
+// three scenes
+let scene_1=true
+let scene_2=false
+let scene_3=false
+
+
+
+
 function preload() {
   // load any assets (images, sounds, etc.) here
 }
 
 function setup() {
+   createCanvas(windowWidth,windowHeight);
+
   // add your setup code here
 }
 
 function draw() {
-  // add your draw code here
+  background(color('#222'))
+  if(scene_1){
+
+  }else{
+    
+  }
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // when you hit the spacebar, what's currently on the canvas will be saved (as
 // a "thumbnail.png" file) to your downloads folder. this is a good starting
