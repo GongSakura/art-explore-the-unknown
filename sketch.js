@@ -27,6 +27,8 @@ let colors = [...red_colors, ...green_colors, ...blue_colors]
 let alphabet = new Set()
 let words = ['hi']
 let words_len=1
+let tentacle 
+let hearts
 
 function preload() {
   // load any assets (images, sounds, etc.) here
@@ -45,8 +47,8 @@ function setup() {
   h = windowHeight
   // drawingContext.shadowOffsetX = 2;
   // drawingContext.shadowOffsetY = -2;
-  // drawingContext.shadowBlur = 2;
-  // drawingContext.shadowColor = '#222'; 
+  // drawingContext.shadowBlur = 5;
+  // drawingContext.shadowColor = '#aaa'; 
   push()
 
   textfield = createInput('')
@@ -67,31 +69,36 @@ function draw() {
     rectMode(CENTER)
     translate(width / 2, height / 2)
     blendMode(SCREEN)
-    for (let j = 0; j < (words.length); j++) {
-      rotate(TWO_PI / (words.length) * j)
+    tentacle = words.length%64
+    hearts =    words_len%30
+    for (let j = 0; j <tentacle ; j++) {
+      rotate(TWO_PI / tentacle * j)
       push()
       // for (let i = 0; i < 20; i++) {
-      for (let i = 0; i < words_len; i++) {
+      for (let i = 0; i < hearts; i++) {
 
-        translate(0, -height / 10)
-        // rotate(map(noise(frameCount/100),0,1,0,PI*0.2 ))
-        rotate(sin(i * 800 / (mouseX + 0.1)) + j / 16 + frameCount / 200 + i * 600 / (mouseY + 0.1))
-        // rotate(sin(i / (frameCount / 500) + mouseX / 50 + j))
-        scale(noise(j, frameCount / 50) / 2 + 0.6 + map(mouseX, 0, width, -0.1, 0.2))
-        fill(red_colors[int(map(noise(i, j), 0, 1, 0, red_colors.length - 1))])
+        translate(0, -height / 20)
+        rotate(sin(i * 800 / (mouseX + 0.1)) + j / 64 + frameCount / 500 + i * 600 / (mouseY + 0.1))
+        scale(noise(j, frameCount / 50) / 2 + 0.5 +map(mouseX, 0, width, -0.1, 0.2) )
+        // fill(colors[int(map(noise(i, j), 0, 1, 0, colors.length - 1))])
         push()
-        scale(noise(i, j,frameCount / 50) * 0.5)
+        scale(noise(i, j,frameCount / 50) * map(hearts,1,50,0.8,0.5))
         rotate(-PI * 1 / 4)
         rect(0, -15, 30, 60, 40, 40, 0, 0)
         rotate(PI * 2 / 4)
         rect(0, -15, 30, 60, 40, 40, 0, 0)
         pop()
-        // for(let k =0;k<5;k++){
-        //   fill(random(red_colors))
-        //   // fill(255)
-        //   // ellipse(map(noise(i,k),0,1,-50,50), map(noise(j,k),0,1,-20,30), 2)
-        //   ellipse(sin(frameCount/20+i+k)*50, cos(frameCount/20+i+k)*50, 2,2)
-        // }
+        push()
+        if(hearts>15){
+          for(let k =0;k<4;k++){
+          fill((red_colors[k%red_colors.length]))
+          // fill(255)
+          // ellipse(map(noise(i,k),0,1,-50,50), map(noise(j,k),0,1,-20,30), 2)
+          ellipse(sin(frameCount/20+i+k)*50, cos(frameCount/20+i+k)*50, 2,2)
+        }
+        }
+        pop()
+     
       }
       pop()
     }
@@ -122,6 +129,7 @@ function draw() {
 
 }
 
+// input text
 function inputText(){
   let sentences = textfield.value()
   words_len=sentences.length
@@ -129,6 +137,8 @@ function inputText(){
   alphabet.add(sentences.charAt(0))
   console.log(words,alphabet);
   textfield.value('')
+  mouseX=w/2
+  mouseY=h*0.2
 }
 
 
