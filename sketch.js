@@ -1,7 +1,7 @@
 
 // screen w/h
-let w 
-let h 
+let w
+let h
 
 // three scenes
 let scene_1 = true
@@ -26,9 +26,10 @@ let textfield
 let colors = [...red_colors, ...green_colors, ...blue_colors]
 let alphabet = new Set()
 let words = ['hi']
-let words_len=1
-let tentacle 
+let words_len = 1
+let tentacle
 let hearts
+let particle_type
 
 function preload() {
   // load any assets (images, sounds, etc.) here
@@ -37,11 +38,7 @@ function preload() {
 }
 
 function setup() {
-  if (bgm_1.isPlaying()) {
-    bgm_1.pause()
-  } else {
-    bgm_1.play()
-  }
+
   createCanvas(windowWidth, windowHeight);
   w = windowWidth
   h = windowHeight
@@ -52,8 +49,8 @@ function setup() {
   push()
 
   textfield = createInput('')
-  textfield.size(w*0.2)
-  textfield.position(width*0.4,height*0.9)
+  textfield.size(w * 0.2)
+  textfield.position(width * 0.4, height * 0.9)
   textfield.changed(inputText)
   pop()
 }
@@ -68,37 +65,57 @@ function draw() {
     noStroke()
     rectMode(CENTER)
     translate(width / 2, height / 2)
-    blendMode(SCREEN)
-    tentacle = words.length%64
-    hearts =    words_len%30
-    for (let j = 0; j <tentacle ; j++) {
+    // blendMode(SCREEN)
+    tentacle = words.length * 2 > 24 ? 24 : words.length * 2
+    if (tentacle != 1 && tentacle % 2 == 1) {
+      tentacle++
+    }
+    hearts = words_len > 20 ? 20 : words_len
+
+    for (let j = 0; j < tentacle; j++) {
       rotate(TWO_PI / tentacle * j)
       push()
       // for (let i = 0; i < 20; i++) {
       for (let i = 0; i < hearts; i++) {
-
         translate(0, -height / 20)
         rotate(sin(i * 800 / (mouseX + 0.1)) + j / 64 + frameCount / 500 + i * 600 / (mouseY + 0.1))
-        scale(noise(j, frameCount / 50) / 2 + 0.5 +map(mouseX, 0, width, -0.1, 0.2) )
-        // fill(colors[int(map(noise(i, j), 0, 1, 0, colors.length - 1))])
+        scale(noise(j, frameCount / 50) / 2 + 0.6 + map(mouseX, 0, width, -0.1, 0.4))
+        fill(colors[int(map(noise(i, j), 0, 1, 0, colors.length - 1))])
         push()
-        scale(noise(i, j,frameCount / 50) * map(hearts,1,50,0.8,0.5))
+        scale(noise(i, j, frameCount / 50) * map(hearts, 1, 50, 0.7, 0.5))
         rotate(-PI * 1 / 4)
         rect(0, -15, 30, 60, 40, 40, 0, 0)
         rotate(PI * 2 / 4)
         rect(0, -15, 30, 60, 40, 40, 0, 0)
         pop()
-        push()
-        if(hearts>15){
-          for(let k =0;k<4;k++){
-          fill((red_colors[k%red_colors.length]))
-          // fill(255)
-          // ellipse(map(noise(i,k),0,1,-50,50), map(noise(j,k),0,1,-20,30), 2)
-          ellipse(sin(frameCount/20+i+k)*50, cos(frameCount/20+i+k)*50, 2,2)
+
+   
+
+        if (hearts > 10) {
+          push()
+          for (let k = 0; k < 4; k++) {
+
+            // fill(255)
+            // ellipse(map(noise(i,k),0,1,-50,50), map(noise(j,k),0,1,-20,30), 2)
+
+            if (particle_type < 0.34) {
+              fill((red_colors[(red_colors.length - k) % red_colors.length]))
+              rect(sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2)
+            } else if (particle_type < 0.67) {
+              fill((red_colors[(red_colors.length - k) % red_colors.length]))
+              ellipse((sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2))
+            } else {
+              push()
+              stroke((red_colors[(red_colors.length - k) % red_colors.length]))
+              strokeWeight(1)
+              line(sin(frameCount / 20 + i + k) * map(noise(k),0,1, 10, 30), cos(frameCount / 20 + i + k) * map(noise(k, frameCount),0,1, 10, 30), sin(frameCount / 20 + i + k) * map(noise(k),0,1, -10, -30), cos(frameCount / 20 + i + k) * map(noise(k, frameCount),0,1, -10, -30))
+              pop()
+            }
+          }
+          pop()
         }
-        }
-        pop()
-     
+  
+
       }
       pop()
     }
@@ -130,15 +147,19 @@ function draw() {
 }
 
 // input text
-function inputText(){
+function inputText() {
   let sentences = textfield.value()
-  words_len=sentences.length
+  words_len = sentences.length
   words = sentences.split(' ')
   alphabet.add(sentences.charAt(0))
-  console.log(words,alphabet);
+  console.log(words, alphabet);
   textfield.value('')
-  mouseX=w/2
-  mouseY=h*0.2
+  particle_type = random(1)
+  mouseX = w / 2
+  mouseY = h * 0.2
+  if (bgm_1.isPaused()) {
+    bgm_1.play()
+  }
 }
 
 
