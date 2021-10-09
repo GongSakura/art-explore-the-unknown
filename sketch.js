@@ -2,10 +2,17 @@
 
 
 // three scenes
-let scene_1=true
-let scene_2=false
-let scene_3=false
+let scene_1 = true
+let scene_2 = false
+let scene_3 = false
 
+// all colors
+let red_colors = ['#8c2f39', '#ad2831', '#b23a48', '#c9184a', '#f38375', '#fcb9b2', '#ffe3e0']
+let green_colors = ['#52b788', '#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
+let blue_colors = ['#01497c', '#014f86', '#2a6f97', '#2c7da0', '#468faf', '#61a5c2', '#89c2d9']
+
+// player gained colors
+let colors = [...red_colors, ...green_colors, ...blue_colors]
 
 
 
@@ -14,38 +21,66 @@ function preload() {
 }
 
 function setup() {
-   createCanvas(windowWidth,windowHeight);
+  createCanvas(windowWidth, windowHeight);
+  // drawingContext.shadowOffsetX = 2;
+  // drawingContext.shadowOffsetY = -2;
+  // drawingContext.shadowBlur = 2;
+  // drawingContext.shadowColor = '#222';
 
   // add your setup code here
 }
 
 function draw() {
   background(color('#222'))
-  if(scene_1){
+  // background(255)
+  frameRate(30)
+  if (scene_1 == true) {
+    noStroke()
+    rectMode(CENTER)
+    translate(width / 2, height / 2)
+  
+    push()
+    blendMode(SCREEN)
+    for (let j = 0; j < 16; j++) {
+      rotate(TWO_PI /  16 * j)
+      push()
+      for (let i = 0; i < 20; i++) {
+   
+        translate(0, -height / 10)
+        // rotate(map(noise(frameCount/100),0,1,0,PI*0.2 ))
+        rotate(sin(i*500/(mouseX+0.1))+j/50+frameCount/200+i*300/(mouseY+0.1))
+        // rotate(sin(i / (frameCount / 500) + mouseX / 50 + j))
+       scale(noise(j,frameCount/50)/2+0.6+map(mouseX,0,width,-0.2,0.3))
+        fill(red_colors[int(map(noise(i,j),0,1,0,red_colors.length-1))])
+        push()
+     
+        scale(noise(i,frameCount/50)*0.5)
+      
+        rotate(-PI * 1 / 4)
+        rect(0, -15, 30, 60, 40, 40, 0, 0)
+        rotate(PI * 2 / 4)
+        rect(0, -15, 30, 60, 40, 40, 0, 0)
+        pop()
+        for(let k =0;k<5;k++){
+          fill(random(red_colors))
+          // fill(255)
+          // ellipse(map(noise(i,k),0,1,-50,50), map(noise(j,k),0,1,-20,30), 2)
+          ellipse(sin(frameCount/20+i+k)*50, cos(frameCount/20+i+k)*50, 2,2)
+        }
+      }
+      pop()
+    }
+    pop()
+ 
+  } else if (scene_2 == true) {
 
-  }else{
-    
+  } else if (scene_3 == true) {
+
   }
 
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // when you hit the spacebar, what's currently on the canvas will be saved (as
 // a "thumbnail.png" file) to your downloads folder. this is a good starting
