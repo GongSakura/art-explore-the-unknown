@@ -62,15 +62,22 @@
 		 border: none;
 		 outline: none;
 
-		 color: #ffebda;
+		 color: rgb(255, 255, 255);
 		text-transform: capitalize;
 		 height: 3vh;
 		 border-radius: 24px;
-		 background: rgba(151, 170, 199, 0.397);
-		 padding: 0px 20px;
+		 background: rgba(25, 32, 43, 0.924);
+		 padding-left:20px;
 		 /* box-shadow: rgba(53, 82, 105, 0.418) 0 */
 	 }
 	</style>
+	<script>
+		if (navigator.userAgent.indexOf("Chrome") !== -1){
+			window.canUseBlendMode=true
+		}else{
+			window.canUseBlendMode=false
+		}
+	</script>
   </head>
 
   <body>
