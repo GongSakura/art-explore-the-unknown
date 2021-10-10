@@ -249,9 +249,9 @@ function inputText() {
     
     for (let j = 0; j < limit; j++) {
       if (j % 2 == 0) {
-        textParticles.push(new TextParticle(words[i].toUpperCase(), random(w), random(h)))
+        textParticles.push(new TextParticle(words[i].toUpperCase(),random(w*0.3,w*0.7), random(h*0.3,h*0.7)))
       }
-      textParticles.push(new TextParticle(words[i], random(w), random(h)))
+      textParticles.push(new TextParticle(words[i], random(w*0.3,w*0.7), random(h*0.3,h*0.7)))
     }
   }
 
