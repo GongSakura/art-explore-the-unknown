@@ -6,6 +6,8 @@
 // screen w/h
 let w
 let h
+let background_noise 
+let radius
 
 // three scenes
 let scene_1 = !true
@@ -129,26 +131,88 @@ function inputText() {
 
   mouseX = random(1) < 0.5 ? random(w * 0.8, w) : random(w * 0.2)
   mouseY = random(h * 0.8, h)
-  // mouseY = h * 0.2
-  if (!bgm_1.isPlaying()) {
-    bgm_1.play()
-  }
+
+  // if (!bgm_1.isPlaying()) {
+  //   bgm_1.play()
+  // }
 }
 
 // ============= scene two config =============
 
 // ** to record the number of different draws **
 // if next one is more complicated than last one, if plyer can draw up to 10 complex painting, it will gained all the green colors
-let paintings = 10
-let raduis
+let paintings = 0
+
 
 // ============= scene three config =============
 // ** to record the volumn of different speaking **
 // if player's voice volumn can reach all levels, then it will gained all the blue colors
-let voices = 100
+let voices = 0
+let linkParticles=[]
+let mic 
+let currentLevel=0
+let accumlate=0
+
+function LinkParticle(x1,y1,x2,y2,frequency,amplitude){
+  this.start=  createVector(x1,y1)
+  this.end = createVector(x2,y2)
+  this.frequency = frequency
+  this.amplitude = amplitude
+  // this.head = frequency*random(0.05,0.3)
+  this.head = frequency*map(noise(x1,y1),0,1,0.05,0.3)
+  // this.tail = frequency*random(0.7,0.95)
+  this.tail = frequency*map(noise(x2,y2),0,1,0.7,0.95)
+  this.isRandom = random(1)<0.5?true:false
+  this.isRandom=false
+  this.show=()=>{
+    push()
+    stroke(255)
+    strokeWeight(4)
+    noFill()
+    beginShape()
+    for (let i = 0; i < frequency; i++) {
+      let d = p5.Vector.lerp(this.start,this.end,i/frequency)
+      if(i>this.head  && i<this.tail){
+        if(this.isRandom){
+          vertex(d.x, sin(d.x+frameCount/5) * noise(i)*amplitude)
+        }else{
+          vertex(d.x, sin(d.x+frameCount/5)*amplitude)
+        }
+      }else{
+        vertex(d.x,1)
+
+      }
+     
+    }
+    vertex(this.end.x,1)
+    
+   
+    endShape()
+    pop()
+  }
+}
+
+// set the noise background
+// Setting the grainy effect of the background
+function setNoise(ctx) {
+  ctx.background(230,227,223);
+  ctx.loadPixels();
+  for (let x = 0; x < ctx.width; x+=2) {
+      for (let y = 0; y < ctx.height; y++) {
+          if (random(1) > 0.95) {
+              const index = (x + y * ctx.width) *36;
+              ctx.pixels[index] = 150; //red
+              ctx.pixels[index + 1] = 0; //green
+              ctx.pixels[index + 2] = 255; // blue
+              ctx.pixels[index + 3] = 200; //alpha
+          }
+      }
+  }
+  ctx.updatePixels();
+}
 
 
-
+// ==============================================
 
 function preload() {
   // load any assets (images, sounds, etc.) here
@@ -160,27 +224,35 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   w = windowWidth
   h = windowHeight
-  // drawingContext.shadowOffsetX = 2;
-  // drawingContext.shadowOffsetY = -2;
-  // drawingContext.shadowBlur = 5;
-  // drawingContext.shadowColor = '#222';
-  raduis = h / 5
+ 
+  radius = h / 4
+
   push()
   textfield = createInput('')
   textfield.size(w * 0.2)
-  textfield.position(w * 0.392, h * 0.9)
+  textfield.position(w * 0.385, h * 0.9)
   textfield.changed(inputText)
   textfield.hide()
   pop()
-  drawingContext.shadowBlur = 0
+
+
+  // background noise
+  background_noise= createGraphics(w, h)
+  setNoise(background_noise)
+
+  // mic
+  mic = new p5.AudioIn(()=>{
+    alert('cannot access your mic')
+  })
+  mic.amp(255)
 }
 
 function draw() {
-
+  
   let wave = fft.waveform()
   // background(color('#222'))
   // background(20, 200)
-  background(255)
+  image(background_noise,0,0)
 
   frameRate(30)
   // ========================== scene one ==============================
@@ -195,16 +267,16 @@ function draw() {
     push()
     noStroke()
     rectMode(CENTER)
-    translate(width / 2, height / 2)
+    translate(width / 2, height*0.45)
 
     push()
     fill(color('#222'))
     ellipse(0, 0, h / 2, h / 2)
     pop()
 
-    // if (window.canUseBlendMode) {
-    //   blendMode(SCREEN)
-    // }
+    if (window.canUseBlendMode) {
+      blendMode(SCREEN)
+    }
 
     tentacle = words.length * 2 > 24 ? 24 : words.length * 2
     tentacle = tentacle == 0 ? 1 : tentacle
@@ -256,7 +328,7 @@ function draw() {
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
-    text('Poems - the most romantic language in the world. Alphabet makes words vivid', w / 2 - 200, h * 0.85, 400, 150)
+    text('Poems - the most romantic language in the world. Alphabet makes words vivid', w / 2 - 200, h * 0.82, 400, 150)
     pop()
 
     // random mouse
@@ -273,48 +345,51 @@ function draw() {
 
   } else if (scene_3 == true) {
 
-
-
+    mic.start()
+    let level = mic.getLevel()
+    if(level>0.1){
+      console.log(level);
+    }
+    if(level>currentLevel){
+      accumlate = accumlate*5>80?80:accumlate*5
+      currentLevel=level
+    }else{
+      accumlate=1
+    }
+  
     // electric connection
     push()
 
     rectMode(CENTER)
-    translate(width / 2, height / 2)
+    translate(width / 2, height *0.4)
 
     noStroke()
     fill(0)
     ellipse(0, 0, h / 2, h / 2)
 
-    push()
-    stroke(200)
-    strokeWeight(3)
-    ellipse(0, 0, h / 3, h / 3)
-    pop()
 
-
-    push()
-    fill(255)
+    rotate(frameCount/500)
+    fill(0)
+    // anchor
     for (i = 0; i < 12; i++) {
-      rect(raduis * cos(i * TWO_PI / 12 + (frameCount%w) / 50), raduis * sin(i * TWO_PI / 12 + (frameCount%h) / 100), 8, 8)
-
+      rect(radius * cos(i * TWO_PI / 12 ), radius * sin(i * TWO_PI / 12 ),8)
     }
-    stroke(255)
-    strokeWeight(5)
-    let start = raduis*cos((frameCount%w)/50)
-    let end = raduis*cos(6 * TWO_PI / 12 + (frameCount%w)/50)
-    let interval = (end-start)/50
-    console.log(interval);
-    beginShape()
-    noFill()
-    vertex(raduis*cos((frameCount%w)/50), raduis * sin(  (frameCount%h) / 100))
+    // decoration
+    rect(radius*1.12,0,20,5)
+    rect(radius*1.15*cos(TWO_PI*6/12),radius*1.15*sin(TWO_PI*6/12),20,5)
+    textSize(14)
+    textStyle(BOLD)
+    text('0°',radius*1.25,5)
+    text('360°',-radius*1.4,5)
     
-    for(let i=1;i<50; i++){
-      vertex(start+i*interval, sin(start+i*interval)*6)
-    }
-    vertex(raduis*cos(6 * TWO_PI / 12 + (frameCount%w)/50), raduis * sin( 6* TWO_PI / 12 + (frameCount%h) / 100))
-    endShape()
+    let start = radius 
+    let end = radius * cos(6 * TWO_PI / 12)
 
-    pop()
+    let lp = new LinkParticle(start,0,end,0,10+accumlate,map(mic.getLevel(),0,100,1,50))
+   
+    lp.show()
+
+
 
 
     pop()
@@ -342,13 +417,13 @@ function draw() {
   push()
   noStroke()
   rectMode(CENTER)
-
-  fill(map(alphabet.size, 0, 26, 0, 255), 0, 0, map(alphabet.size, 0, 26, 100, 150))
-  rect(w / 2 - h * 0.05, h * 0.82, h * 0.03, h * 0.03, 4)
-  fill(0, map(paintings, 0, 10, 0, 255), 0, map(paintings, 0, 10, 100, 150))
-  rect(w / 2, h * 0.82, h * 0.03, h * 0.03, 4)
-  fill(0, 0, map(voices, 0, 100, 0, 255), map(voices, 0, 100, 100, 150))
-  rect(w / 2 + h * 0.05, h * 0.82, h * 0.03, h * 0.03, 4)
+ 
+  fill(map(alphabet.size, 0, 26, 20, 255), 0, 0, map(alphabet.size, 0, 26, 20, 200))
+  rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
+  fill(0, map(paintings, 0, 10, 20, 255), 0, map(paintings, 0, 10,20, 200))
+  rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
+  fill(0, 0, map(voices, 0, 100, 20, 255), map(voices, 0, 100, 20, 200))
+  rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
   pop()
 
 }
