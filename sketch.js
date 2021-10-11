@@ -365,14 +365,15 @@ function draw() {
 
     noStroke()
     fill(0)
-    ellipse(0, 0, h / 2, h / 2)
+    ellipse(0, 0, h / 2-map(level,0,255,0,h/8), h / 2-map(level,0,255,0,h/8))
 
 
     rotate(frameCount/500)
     fill(0)
+    let radius_voice =radius-map(level,0,255,0,h/8)
     // anchor
     for (i = 0; i < 12; i++) {
-      rect(radius * cos(i * TWO_PI / 12 ), radius * sin(i * TWO_PI / 12 ),8)
+      rect(radius_voice * cos(i * TWO_PI / 12 ), radius_voice * sin(i * TWO_PI / 12 ),8)
     }
     // decoration
     rect(radius*1.12,0,20,5)
@@ -382,10 +383,10 @@ function draw() {
     text('0°',radius*1.25,5)
     text('360°',-radius*1.4,5)
     
-    let start = radius 
-    let end = radius * cos(6 * TWO_PI / 12)
+    let start = radius-map(level,0,100,1,50)
+    let end = (radius-map(level,0,100,1,50)) * cos(6 * TWO_PI / 12)
 
-    let lp = new LinkParticle(start,0,end,0,10+accumlate,map(mic.getLevel(),0,100,1,50))
+    let lp = new LinkParticle(start,0,end,0,10+accumlate,map(level,0,100,1,50))
    
     lp.show()
 
