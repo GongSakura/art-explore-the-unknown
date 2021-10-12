@@ -4,9 +4,9 @@
 
 // ============= global config =============
 // screen w/h
-let w
-let h
-let background_noise 
+let w = 0
+let h = 0
+let background_noise
 let radius
 
 // three scenes
@@ -147,68 +147,133 @@ let paintings = 0
 // ============= scene three config =============
 // ** to record the volumn of different speaking **
 // if player's voice volumn can reach all levels, then it will gained all the blue colors
-let voices =0
-let voicesLevel= new Set()
-let linkParticles=[]
-let mic 
-let currentLevel=0
-let accumlate=0
+let voices = 0
+let voicesLevel = new Set()
+let linkParticles = []
+let mic = null
+let previousLevel = 0
+let currentLevel = 0
+let accumlate = 0
+let micIsActive = false
+let circleParticles = []
+let tempcp = null
+let lastFrameCount = 0
 
-function LinkParticle(x1,y1,x2,y2,frequency,amplitude){
-  this.start=  createVector(x1,y1)
-  this.end = createVector(x2,y2)
+function LinkParticle(x1, y1, x2, y2, frequency, amplitude) {
+  this.start = createVector(x1, y1)
+  this.end = createVector(x2, y2)
   this.frequency = frequency
   this.amplitude = amplitude
-  // this.head = frequency*random(0.05,0.3)
-  this.head = frequency*map(noise(x1,y1),0,1,0.05,0.3)
-  // this.tail = frequency*random(0.7,0.95)
-  this.tail = frequency*map(noise(x2,y2),0,1,0.7,0.95)
-  this.isRandom = random(1)<0.5?true:false
-  this.isRandom=false
-  this.show=()=>{
+
+  this.head = frequency * map(noise(x1, y1), 0, 1, 0.05, 0.3)
+  this.tail = frequency * map(noise(x2, y2), 0, 1, 0.7, 0.95)
+
+  // this.isRandom = random(1) < 0.5 ? true : false
+  // this.isRandom = false
+  this.show = () => {
     push()
     stroke(255)
     strokeWeight(4)
     noFill()
     beginShape()
+
     for (let i = 0; i < frequency; i++) {
-      let d = p5.Vector.lerp(this.start,this.end,i/frequency)
-      if(i>this.head  && i<this.tail){
-        if(this.isRandom){
-          vertex(d.x, sin(d.x+frameCount/5) * noise(i)*amplitude)
-        }else{
-          vertex(d.x, sin(d.x+frameCount/5)*amplitude)
-        }
-      }else{
-        vertex(d.x,1)
+      let d = p5.Vector.lerp(this.start, this.end, i / frequency)
+      if (i > this.head && i < this.tail) {
+        vertex(d.x, sin(d.x + frameCount / 5) * amplitude)
+      } else {
+        vertex(d.x, 1)
 
       }
-     
+
     }
-    vertex(this.end.x,1)
-    
-   
+    vertex(this.end.x, 1)
+
+
     endShape()
     pop()
   }
 }
+function CircleParticle(level) {
+  this.level = level
+
+  this.opacity = 255
+  this.size = h / 2.5
+  this.update = () => {
+    this.opacity -= 5
+    this.size += 4
+    this.sw = map(this.size, h / 2, h, 4, 0)
+    if (this.opacity < 0) {
+      this.opacity = 255
+      this.size = h / 2.5
+    }
+  }
+  this.show = () => {
+    push()
+    translate(width / 2, height * 0.4)
+    // stroke(50,this.opacity)
+    // strokeWeight(this.sw)
+    // noFill()
+    noStroke()
+    fill(map(this.level, 0, 255, 50, 80), map(this.level, 0, 255, 50, 80), map(this.level, 0, 255, 50, 200), this.opacity)
+    ellipse(0, 0, this.size, this.size)
+    pop()
+    this.update()
+  }
+
+
+}
+
 
 // grainy effect for background
 function setNoise(ctx) {
-  ctx.background(230,227,225);
+  ctx.background(230, 227, 225);
   ctx.loadPixels();
-  for (let x = 0; x < ctx.width; x+=2) {
-      for (let y = 0; y < ctx.height; y++) {
-          if (random(1) > 0.95) {
-              const index = (x + y * ctx.width) *36;
-              ctx.pixels[index] = 150; //red
-              ctx.pixels[index + 1] = 0; //green
-              ctx.pixels[index + 2] = 255; // blue
-              ctx.pixels[index + 3] = 200; //alpha
-          }
+  for (let x = 0; x < ctx.width; x += 2) {
+    for (let y = 0; y < ctx.height; y++) {
+      if (random(1) > 0.95) {
+        const index = (x + y * ctx.width) * 36;
+        ctx.pixels[index] = 150; //red
+        ctx.pixels[index + 1] = 0; //green
+        ctx.pixels[index + 2] = 255; // blue
+        ctx.pixels[index + 3] = 200; //alpha
       }
+    }
   }
   ctx.updatePixels();
+}
+
+function drawMic(level) {
+  // draw a mic
+  push()
+  if (micIsActive) {
+    fill(color(0, 0, map(level, 0, 200, 20, 200), map(level, 0, 200, 255, 50)))
+  } else {
+    fill(0, 50)
+  }
+  noStroke()
+
+  rectMode(CENTER)
+  rect(w / 2, h * 0.85, 20, 36, 20, 20, 20, 20)
+  rect(w / 2, h * 0.88, 4, 20)
+  rect(w / 2, h * 0.88 + 10, 20, 4)
+  if (micIsActive) {
+    stroke(color(0, 0, map(level, 0, 200, 20, 200), map(level, 0, 200, 255, 50)))
+  } else {
+    stroke(0, 50)
+  }
+
+  strokeWeight(4)
+  beginShape();
+  noFill()
+  curveVertex(w / 2 - 16, h * 0.84);
+  curveVertex(w / 2 - 16, h * 0.85);
+  curveVertex(w / 2 - 12, h * 0.87);
+  curveVertex(w / 2 + 12, h * 0.87);
+  curveVertex(w / 2 + 16, h * 0.85);
+  curveVertex(w / 2 + 16, h * 0.84);
+  endShape();
+  pop()
 }
 
 
@@ -224,7 +289,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   w = windowWidth
   h = windowHeight
- 
+
   radius = h / 4
 
   push()
@@ -237,22 +302,29 @@ function setup() {
 
 
   // background noise
-  background_noise= createGraphics(w, h)
+  background_noise = createGraphics(w, h)
   setNoise(background_noise)
 
-  // mic
-  mic = new p5.AudioIn(()=>{
-    alert('cannot access your mic')
-  })
-  mic.amp(255)
+
 }
 
 function draw() {
-  
-  let wave = fft.waveform()
+  // mouse effect
+  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene_3) {
+    cursor(HAND)
+  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+    cursor(HAND)
+  }
+  else {
+    cursor(ARROW)
+  }
+
+
+
+  // let wave = fft.waveform()
   // background(color('#222'))
   // background(20, 200)
-  image(background_noise,0,0)
+  image(background_noise, 0, 0)
 
   frameRate(30)
   // ========================== scene one ==============================
@@ -267,10 +339,10 @@ function draw() {
     push()
     noStroke()
     rectMode(CENTER)
-    translate(width / 2, height*0.45)
+    translate(width / 2, height * 0.4)
 
     push()
-    fill(color('#222'))
+    fill(22)
     ellipse(0, 0, h / 2, h / 2)
     pop()
 
@@ -341,61 +413,77 @@ function draw() {
   }
   // ========================== scene two ==============================
   else if (scene_2 == true) {
+    textfield.hide()
 
-
-  } 
-   // ========================== scene three ==============================
+  }
+  // ========================== scene three ==============================
   else if (scene_3 == true) {
+    textfield.hide()
 
-    mic.start()
-    let level = mic.getLevel()
-    if(level>0.1){
-      console.log(level);
-    }
-    if(level>currentLevel){
-      accumlate = accumlate*5>80?80:accumlate*5
-      currentLevel=level
-    }else{
-      accumlate=1
+    let level = mic?.getLevel() ? mic.getLevel() : 0
+
+    if (level > previousLevel) {
+      accumlate = accumlate+12 > 84 ? 84 : accumlate +12
+      previousLevel = level
+    } else {
+      accumlate = 1
     }
 
-    voicesLevel.add(int(level))
-    voices=voicesLevel.size
+    // if (tempcp == null) {
+    //   tempcp = new CircleParticle(1)
+    // } else {
+    //   tempcp.level = level
+    //   if (micIsActive) {
+    //     tempcp.show()
+    //   }
+    // }
+
+    if(accumlate>36){
+      voicesLevel.add(int(level))
+      voices = voicesLevel.size
+      alert("gained!")
+    }
+    console.log(level);
 
     // electric connection
     push()
 
     rectMode(CENTER)
-    translate(width / 2, height *0.4)
-
+    translate(width / 2, height * 0.4)
     noStroke()
-    fill(0)
-    ellipse(0, 0, h / 2-map(level,0,255,0,h/8), h / 2-map(level,0,255,0,h/8))
+
+    if (micIsActive) {
+      rotate(frameCount / 500)
+    } 
+
+    fill(22)
+    ellipse(0, 0, h / 2 - map(level, 0, 255, 0, h / 8), h / 2 - map(level, 0, 255, 0, h / 8))
 
 
-    rotate(frameCount/500)
     fill(0)
-    let radius_voice =radius-map(level,0,255,0,h/8)
+
     // anchor
+    let radius_voice = radius - map(level, 0, 255, 0, h / 8)
     for (i = 0; i < 12; i++) {
-      rect(radius_voice * cos(i * TWO_PI / 12 ), radius_voice * sin(i * TWO_PI / 12 ),8)
+      rect(radius_voice * cos(i * TWO_PI / 12), radius_voice * sin(i * TWO_PI / 12), 8)
     }
     // decoration
-    rect(radius*1.12,0,20,5)
-    rect(radius*1.12*cos(TWO_PI*6/12),radius*1.15*sin(TWO_PI*6/12),20,5)
+    rect(radius * 1.12, 0, 20, 5)
+    rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
     textSize(14)
     textStyle(BOLD)
-    text('0°',radius*1.20,5)
-    text('360°',-radius*1.35,5)
-    
-    let start = radius-map(level,0,100,1,50)
-    let end = (radius-map(level,0,100,1,50)) * cos(6 * TWO_PI / 12)
+    text('0°', radius * 1.20, 5)
+    text('360°', -radius * 1.35, 5)
 
-    let lp = new LinkParticle(start,0,end,0,10+accumlate,map(level,0,100,1,50))
-   
+
+    // let start = radius - map(level, 0, 100, 1, 50)
+    let start = (radius - map(level, 0, 100, 1, 50))
+    let end = (radius - map(level, 0, 100, 1, 50)) * cos(6 * TWO_PI / 12)
+
+    // main axis
+    // let lp = new LinkParticle(start, 0, end, 0, 10 + accumlate, map(level, 0, 100, 1, 50))
+    let lp = new LinkParticle(start, 0, end, 0,  4+accumlate, map(level, 0, 100, 1, 50))
     lp.show()
-
-
 
 
     pop()
@@ -420,20 +508,53 @@ function draw() {
 
   }
 
+  // =============== color signal =================
   push()
   noStroke()
   rectMode(CENTER)
- 
   fill(map(alphabet.size, 0, 26, 20, 255), 0, 0, map(alphabet.size, 0, 26, 20, 200))
   rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, map(paintings, 0, 10, 20, 255), 0, map(paintings, 0, 10,20, 200))
+  fill(0, map(paintings, 0, 10, 20, 255), 0, map(paintings, 0, 10, 20, 200))
   rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
   fill(0, 0, map(voices, 0, 100, 20, 255), map(voices, 0, 100, 20, 200))
   rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
   pop()
 
+  // =============== switch button =================
+  push()
+  rectMode(CENTER)
+  fill(22, 200)
+  noStroke()
+  rect(w * 0.05, h / 2, 10, 50, 20)
+  rect(w * 0.95, h / 2, 10, 50, 20)
+  pop()
 }
 
+function mouseClicked() {
+  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene_3) {
+    micIsActive = !micIsActive
+    // todo: play sound
+    if (micIsActive) {
+      if (!mic) {
+        mic = new p5.AudioIn(() => {
+          alert('cannot access your mic')
+        })
+        getAudioContext().resume();
+        mic.amp(255)
+      }
+      mic.start()
+    } else {
+
+      mic.stop()
+    }
+ 
+  }
+  if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+    scene_3 = !scene_3
+    scene_1 = !scene_1
+
+  }
+}
 
 // when you hit the spacebar, what's currently on the canvas will be saved (as
 // a "thumbnail.png" file) to your downloads folder. this is a good starting
