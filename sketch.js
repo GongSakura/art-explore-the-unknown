@@ -147,7 +147,8 @@ let paintings = 0
 // ============= scene three config =============
 // ** to record the volumn of different speaking **
 // if player's voice volumn can reach all levels, then it will gained all the blue colors
-let voices = 0
+let voices =0
+let voicesLevel= new Set()
 let linkParticles=[]
 let mic 
 let currentLevel=0
@@ -192,10 +193,9 @@ function LinkParticle(x1,y1,x2,y2,frequency,amplitude){
   }
 }
 
-// set the noise background
-// Setting the grainy effect of the background
+// grainy effect for background
 function setNoise(ctx) {
-  ctx.background(230,227,223);
+  ctx.background(230,227,225);
   ctx.loadPixels();
   for (let x = 0; x < ctx.width; x+=2) {
       for (let y = 0; y < ctx.height; y++) {
@@ -343,7 +343,9 @@ function draw() {
   else if (scene_2 == true) {
 
 
-  } else if (scene_3 == true) {
+  } 
+   // ========================== scene three ==============================
+  else if (scene_3 == true) {
 
     mic.start()
     let level = mic.getLevel()
@@ -356,7 +358,10 @@ function draw() {
     }else{
       accumlate=1
     }
-  
+
+    voicesLevel.add(int(level))
+    voices=voicesLevel.size
+
     // electric connection
     push()
 
@@ -377,11 +382,11 @@ function draw() {
     }
     // decoration
     rect(radius*1.12,0,20,5)
-    rect(radius*1.15*cos(TWO_PI*6/12),radius*1.15*sin(TWO_PI*6/12),20,5)
+    rect(radius*1.12*cos(TWO_PI*6/12),radius*1.15*sin(TWO_PI*6/12),20,5)
     textSize(14)
     textStyle(BOLD)
-    text('0°',radius*1.25,5)
-    text('360°',-radius*1.4,5)
+    text('0°',radius*1.20,5)
+    text('360°',-radius*1.35,5)
     
     let start = radius-map(level,0,100,1,50)
     let end = (radius-map(level,0,100,1,50)) * cos(6 * TWO_PI / 12)
