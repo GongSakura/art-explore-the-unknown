@@ -375,12 +375,14 @@ function draw() {
     }
 
     let accumlate = level >= 80 ? accumlate_high : accumlate_low
-    if (voiceRecord.has(level)) {
-      let obj = voiceRecord.get(level)
-      obj.count++
-      obj.accumlate = accumlate
-    } else {
-      voiceRecord.set(level,{ "count": 1, "accumlate": accumlate })
+    if (level > 10) {
+      if (voiceRecord.has(level)) {
+        let obj = voiceRecord.get(level)
+        obj.count++
+        obj.accumlate =  (obj.accumlate+ accumlate)/2
+      } else {
+        voiceRecord.set(level, { "count": 1, "accumlate": accumlate })
+      }
     }
 
 
@@ -390,17 +392,15 @@ function draw() {
       let vol = 0
       for (key of voiceRecord.keys()) {
         let value = voiceRecord.get(key)
-        console.log(key,value);
+        console.log(key, value);
         if (value.count > largest) {
           freq = value.accumlate
           vol = key
           largest = value.count
         }
       }
-      if(vol!=0){
-        previousLevel = vol
-        previousAccumlate = freq
-      }
+      previousLevel = vol
+      previousAccumlate = freq
       voiceRecord.clear()
     }
 
@@ -447,24 +447,7 @@ function draw() {
     drawingContext.shadowBlur = 20;
     drawingContext.shadowColor = '#eeeeee77';
 
-
-
-    // if (previousLevel >= 80 && level >= 80) {
-    //   previousLevel = level
-    //   previousAccumlate = accumlate
-    //   console.log(level);
-    // } else if ( level > 10 && Math.abs(previousLevel-level)>60) {
-    //   previousLevel = level
-    //   previousAccumlate = accumlate
-    // }else if(level > 10){
-    //   previousLevel = level
-    //   previousAccumlate = accumlate
-    // }
-
-
-
-
-    main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, previousLevel)
+    main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel,0,255,0,100))
     main_lp_1.show(start, 0, end, 0, 10, 2)
 
     pop()
