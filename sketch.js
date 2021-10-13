@@ -403,13 +403,6 @@ function draw() {
     text('Poems - the most romantic language in the world. Alphabet makes words vivid', w / 2 - 200, h * 0.82, 400, 150)
     pop()
 
-    // random mouse
-    // if (frameCount % 60 == 0) {
-    //   mouseX = random(w)
-    //   mouseY = 0
-    // }
-
-
   }
   // ========================== scene two ==============================
   else if (scene_2 == true) {
@@ -429,20 +422,12 @@ function draw() {
       accumlate = 1
     }
 
-    // if (tempcp == null) {
-    //   tempcp = new CircleParticle(1)
-    // } else {
-    //   tempcp.level = level
-    //   if (micIsActive) {
-    //     tempcp.show()
-    //   }
-    // }
 
-    if(accumlate>36){
+    // if(accumlate>36){
       voicesLevel.add(int(level))
       voices = voicesLevel.size
-      alert("gained!")
-    }
+      // alert("gained!")
+    // }
     console.log(level);
 
     // electric connection
@@ -485,9 +470,15 @@ function draw() {
     let lp = new LinkParticle(start, 0, end, 0,  4+accumlate, map(level, 0, 100, 1, 50))
     lp.show()
 
-
     pop()
 
+     // hint
+     push()
+     textSize(16)
+     textAlign(CENTER)
+     fill(color('#222'))
+     text('The most charming sound tends to last the longest, Time will witness everything ', w / 2 - 200, h * 0.82, 400, 150)
+     pop()
 
 
 
