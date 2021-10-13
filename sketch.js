@@ -9,15 +9,13 @@ let h = 0
 let background_noise
 let radius
 
-// three scenes
-let scene_1 = !true
-let scene_2 = false
-let scene_3 = !false
+// three scenes, 1,2,3
+let scene = 3
 
 // all colors
 let red_colors = ['#8c2f39', '#ad2831', '#b23a48', '#c9184a', '#f38375', '#fcb9b2', '#ffe3e0']
 let green_colors = ['#52b788', '#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
-let blue_colors = ['#01497c', '#014f86', '#2a6f97', '#2c7da0', '#468faf', '#61a5c2', '#89c2d9']
+let blue_colors = ['#c', '#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2d9']
 // player gained colors
 let red_colors_gained = [...red_colors]
 let blue_colors_gained = [...blue_colors]
@@ -151,45 +149,45 @@ let voices = 0
 let voicesLevel = new Set()
 let linkParticles = []
 let mic = null
-let previousLevel = 0
+let previousLevel = 4
+let previousAccumlate = 3
 let currentLevel = 0
-let accumlate = 0
+let accumlate_low = 1
+let accumlate_high = 1
 let micIsActive = false
+let voiceRecord = new Map()
 let circleParticles = []
-let tempcp = null
+
 let lastFrameCount = 0
-
-function LinkParticle(x1, y1, x2, y2, frequency, amplitude) {
-  this.start = createVector(x1, y1)
-  this.end = createVector(x2, y2)
-  this.frequency = frequency
-  this.amplitude = amplitude
-
-  this.head = frequency * map(noise(x1, y1), 0, 1, 0.05, 0.3)
-  this.tail = frequency * map(noise(x2, y2), 0, 1, 0.7, 0.95)
-
-  // this.isRandom = random(1) < 0.5 ? true : false
-  // this.isRandom = false
-  this.show = () => {
+let main_lp_2 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 1], 3)
+let main_lp_1 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 2] ? blue_colors_gained[blue_colors_gained.length - 2] : '#eeeeeeaa', 4)
+function LinkParticle(c, sw) {
+  this.sw = sw
+  this.c = c
+  this.show = (x1, y1, x2, y2, frequency, amplitude) => {
+    let start = createVector(x1, y1)
+    let end = createVector(x2, y2)
+    let head = frequency * map(noise(x1, y1), 0, 1, 0.05, 0.2)
+    let tail = frequency * map(noise(x2, y2), 0, 1, 0.8, 0.95)
     push()
-    stroke(255)
-    strokeWeight(4)
+    stroke(color(this.c))
+    strokeWeight(sw)
     noFill()
     beginShape()
-
-    for (let i = 0; i < frequency; i++) {
-      let d = p5.Vector.lerp(this.start, this.end, i / frequency)
-      if (i > this.head && i < this.tail) {
-        vertex(d.x, sin(d.x + frameCount / 5) * amplitude)
+    // vertex(start.x, 1)
+    for (let i = 0; i < frequency; i += 1) {
+      let d = p5.Vector.lerp(start, end, i / frequency)
+      if (i > head && i < tail) {
+        curveVertex(d.x, sin(d.x + frameCount / 10) * amplitude)
       } else {
+        // curveVertex(d.x, 1)
         vertex(d.x, 1)
-
       }
-
+      // curveVertex(d.x, sin(d.x+ frameCount / 10) * this.amplitude)
+      // curveVertex(d.x, sin(map(d.x,this.start.x,this.end.x,0, this.range)+ frameCount / 10) * this.amplitude)
     }
-    vertex(this.end.x, 1)
-
-
+    // vertex(end.x, 1)
+    vertex(end.x, 1)
     endShape()
     pop()
   }
@@ -209,19 +207,14 @@ function CircleParticle(level) {
     }
   }
   this.show = () => {
+    this.update()
     push()
     translate(width / 2, height * 0.4)
-    // stroke(50,this.opacity)
-    // strokeWeight(this.sw)
-    // noFill()
     noStroke()
     fill(map(this.level, 0, 255, 50, 80), map(this.level, 0, 255, 50, 80), map(this.level, 0, 255, 50, 200), this.opacity)
     ellipse(0, 0, this.size, this.size)
     pop()
-    this.update()
   }
-
-
 }
 
 
@@ -243,38 +236,6 @@ function setNoise(ctx) {
   ctx.updatePixels();
 }
 
-function drawMic(level) {
-  // draw a mic
-  push()
-  if (micIsActive) {
-    fill(color(0, 0, map(level, 0, 200, 20, 200), map(level, 0, 200, 255, 50)))
-  } else {
-    fill(0, 50)
-  }
-  noStroke()
-
-  rectMode(CENTER)
-  rect(w / 2, h * 0.85, 20, 36, 20, 20, 20, 20)
-  rect(w / 2, h * 0.88, 4, 20)
-  rect(w / 2, h * 0.88 + 10, 20, 4)
-  if (micIsActive) {
-    stroke(color(0, 0, map(level, 0, 200, 20, 200), map(level, 0, 200, 255, 50)))
-  } else {
-    stroke(0, 50)
-  }
-
-  strokeWeight(4)
-  beginShape();
-  noFill()
-  curveVertex(w / 2 - 16, h * 0.84);
-  curveVertex(w / 2 - 16, h * 0.85);
-  curveVertex(w / 2 - 12, h * 0.87);
-  curveVertex(w / 2 + 12, h * 0.87);
-  curveVertex(w / 2 + 16, h * 0.85);
-  curveVertex(w / 2 + 16, h * 0.84);
-  endShape();
-  pop()
-}
 
 
 // ==============================================
@@ -309,16 +270,6 @@ function setup() {
 }
 
 function draw() {
-  // mouse effect
-  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene_3) {
-    cursor(HAND)
-  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
-    cursor(HAND)
-  }
-  else {
-    cursor(ARROW)
-  }
-
 
 
   // let wave = fft.waveform()
@@ -328,7 +279,7 @@ function draw() {
 
   frameRate(30)
   // ========================== scene one ==============================
-  if (scene_1 == true) {
+  if (scene == 1) {
     textfield.show()
     // show text particles
     for (let i = 0; i < textParticles.length; i++) {
@@ -400,51 +351,76 @@ function draw() {
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
-    text('Poems - the most romantic language in the world. Alphabet makes words vivid', w / 2 - 200, h * 0.82, 400, 150)
+    text('The same word can be heartrending or exhilarating. That is unexpected.', w / 2 - 200, h * 0.82, 400, 150)
     pop()
 
   }
   // ========================== scene two ==============================
-  else if (scene_2 == true) {
+  else if (scene == 2) {
     textfield.hide()
 
   }
   // ========================== scene three ==============================
-  else if (scene_3 == true) {
+  else if (scene == 3) {
     textfield.hide()
 
-    let level = mic?.getLevel() ? mic.getLevel() : 0
-
-    if (level > previousLevel) {
-      accumlate = accumlate+12 > 84 ? 84 : accumlate +12
-      previousLevel = level
+    let level = mic?.getLevel() ? int(mic.getLevel()) : 0
+    if (level >= 80) {
+      accumlate_high = accumlate_high + 8 > 84 ? 84 : accumlate_high + 8
+    } else if (level > 10) {
+      accumlate_low = accumlate_low + 4 > 32 ? 32 : accumlate_low + 4
     } else {
-      accumlate = 1
+      accumlate_high = 1
+      accumlate_low = 1
+    }
+
+    let accumlate = level >= 80 ? accumlate_high : accumlate_low
+    if (voiceRecord.has(level)) {
+      let obj = voiceRecord.get(level)
+      obj.count++
+      obj.accumlate = accumlate
+    } else {
+      voiceRecord.set(level,{ "count": 1, "accumlate": accumlate })
     }
 
 
-    // if(accumlate>36){
-      voicesLevel.add(int(level))
-      voices = voicesLevel.size
-      // alert("gained!")
-    // }
-    console.log(level);
+    if (level < 10 && voiceRecord.size != 0) {
+      let largest = 0
+      let freq = 0
+      let vol = 0
+      for (key of voiceRecord.keys()) {
+        let value = voiceRecord.get(key)
+        console.log(key,value);
+        if (value.count > largest) {
+          freq = value.accumlate
+          vol = key
+          largest = value.count
+        }
+      }
+      if(vol!=0){
+        previousLevel = vol
+        previousAccumlate = freq
+      }
+      voiceRecord.clear()
+    }
+
+
+    // gain blue colors
+    voicesLevel.add(int(level))
+    voices = voicesLevel.size
+
+
 
     // electric connection
     push()
-
     rectMode(CENTER)
     translate(width / 2, height * 0.4)
     noStroke()
-
     if (micIsActive) {
       rotate(frameCount / 500)
-    } 
-
+    }
     fill(22)
     ellipse(0, 0, h / 2 - map(level, 0, 255, 0, h / 8), h / 2 - map(level, 0, 255, 0, h / 8))
-
-
     fill(0)
 
     // anchor
@@ -461,41 +437,50 @@ function draw() {
     text('360°', -radius * 1.35, 5)
 
 
-    // let start = radius - map(level, 0, 100, 1, 50)
     let start = (radius - map(level, 0, 100, 1, 50))
     let end = (radius - map(level, 0, 100, 1, 50)) * cos(6 * TWO_PI / 12)
 
-    // main axis
-    // let lp = new LinkParticle(start, 0, end, 0, 10 + accumlate, map(level, 0, 100, 1, 50))
-    let lp = new LinkParticle(start, 0, end, 0,  4+accumlate, map(level, 0, 100, 1, 50))
-    lp.show()
+    // main axis  
+    push()
+    drawingContext.shadowOffsetX = 0;
+    drawingContext.shadowOffsetY = -2;
+    drawingContext.shadowBlur = 20;
+    drawingContext.shadowColor = '#eeeeee77';
+
+
+
+    // if (previousLevel >= 80 && level >= 80) {
+    //   previousLevel = level
+    //   previousAccumlate = accumlate
+    //   console.log(level);
+    // } else if ( level > 10 && Math.abs(previousLevel-level)>60) {
+    //   previousLevel = level
+    //   previousAccumlate = accumlate
+    // }else if(level > 10){
+    //   previousLevel = level
+    //   previousAccumlate = accumlate
+    // }
+
+
+
+
+    main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, previousLevel)
+    main_lp_1.show(start, 0, end, 0, 10, 2)
 
     pop()
 
-     // hint
-     push()
-     textSize(16)
-     textAlign(CENTER)
-     fill(color('#222'))
-     text('The most charming sound tends to last the longest, Time will witness everything ', w / 2 - 200, h * 0.82, 400, 150)
-     pop()
 
+    pop()
+    // hint
+    push()
+    textSize(16)
+    textAlign(CENTER)
+    fill(color('#222'))
+    text('Yelling or whispering, that is a question!', w / 2 - 200, h * 0.82, 400, 150)
+    text(`Vol:${previousLevel.toFixed(2)}, Freq:${previousAccumlate}`, w / 2, h * 0.88)
+    text(level, w / 2, h * 0.95)
 
-
-    // push()
-    // stroke(255)
-    // noFill()
-    // strokeWeight(5)
-    // beginShape()
-    // for (let j =0; j<width;j+=5){
-    //   let index = floor(map(j, 0, width, 0, wave.length))
-    //   let x = j
-    //   let y = map(wave[index],-1,1,-50,50)+height/2
-
-    //   vertex(x, y)
-    // }
-    // endShape()
-    // pop()
+    pop()
 
   }
 
@@ -503,26 +488,50 @@ function draw() {
   push()
   noStroke()
   rectMode(CENTER)
-  fill(map(alphabet.size, 0, 26, 20, 255), 0, 0, map(alphabet.size, 0, 26, 20, 200))
+  fill(map(alphabet.size, 0, 26, 20, 220), 0, 0, map(alphabet.size, 0, 26, 20, 200))
   rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, map(paintings, 0, 10, 20, 255), 0, map(paintings, 0, 10, 20, 200))
+  fill(0, map(paintings, 0, 10, 20, 220), 0, map(paintings, 0, 10, 20, 200))
   rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, 0, map(voices, 0, 100, 20, 255), map(voices, 0, 100, 20, 200))
+  fill(0, 0, map(voices, 0, 255, 20, 220), map(voices, 0, 255, 20, 200))
   rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
   pop()
 
   // =============== switch button =================
   push()
   rectMode(CENTER)
-  fill(22, 200)
+  fill(50, 255)
   noStroke()
   rect(w * 0.05, h / 2, 10, 50, 20)
   rect(w * 0.95, h / 2, 10, 50, 20)
   pop()
+
+  // mouse effect
+  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
+    cursor(HAND)
+  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+    push()
+    rectMode(CENTER)
+    fill(90, 255)
+    noStroke()
+    rect(w * 0.05, h / 2, 15, 50, 20)
+    pop()
+    cursor(HAND)
+  } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+    push()
+    rectMode(CENTER)
+    fill(90, 255)
+    noStroke()
+    rect(w * 0.95, h / 2, 15, 50, 20)
+    pop()
+    cursor(HAND)
+  }
+  else {
+    cursor(ARROW)
+  }
 }
 
 function mouseClicked() {
-  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene_3) {
+  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
     micIsActive = !micIsActive
     // todo: play sound
     if (micIsActive) {
@@ -538,13 +547,41 @@ function mouseClicked() {
 
       mic.stop()
     }
- 
-  }
-  if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
-    scene_3 = !scene_3
-    scene_1 = !scene_1
 
   }
+  if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+    switch (scene) {
+      case 1:
+        scene = 3;
+        break
+      case 2:
+        scene = 1;
+        break
+      case 3:
+        scene = 2
+        break
+
+    }
+
+
+  }
+  if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+    switch (scene) {
+      case 1:
+        scene = 2;
+        break
+      case 2:
+        scene = 3;
+        break
+      case 3:
+        scene = 1
+        break
+
+    }
+
+  }
+
+
 }
 
 // when you hit the spacebar, what's currently on the canvas will be saved (as
