@@ -10,12 +10,13 @@ let background_noise
 let radius
 
 // three scenes, 1,2,3
-let scene = 3
+let scene = 1
 
 // all colors
-let red_colors = ['#8c2f39', '#ad2831', '#b23a48', '#c9184a', '#f38375', '#fcb9b2', '#ffe3e0']
+// let red_colors = ['#ffcdb2', '#DB6C79', '#b23a48', '#c9184a', '#f38375', '#fcb9b2', '#ffe3e0']
+let red_colors = ['#ffcdb2', '#ffb4a2', '#e5989b', '#b5838d', '#6d6875']
 let green_colors = ['#52b788', '#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
-let blue_colors = ['#c', '#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2d9']
+let blue_colors = ['#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2d9']
 // player gained colors
 let red_colors_gained = [...red_colors]
 let blue_colors_gained = [...blue_colors]
@@ -159,7 +160,7 @@ let voiceRecord = new Map()
 let circleParticles = []
 
 let lastFrameCount = 0
-let main_lp_2 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 1], 3)
+let main_lp_2 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 1], 4)
 let main_lp_1 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 2] ? blue_colors_gained[blue_colors_gained.length - 2] : '#eeeeeeaa', 4)
 function LinkParticle(c, sw) {
   this.sw = sw
@@ -281,6 +282,7 @@ function draw() {
   // ========================== scene one ==============================
   if (scene == 1) {
     textfield.show()
+  
     // show text particles
     for (let i = 0; i < textParticles.length; i++) {
       textParticles[i].show()
@@ -297,9 +299,9 @@ function draw() {
     ellipse(0, 0, h / 2, h / 2)
     pop()
 
-    if (window.canUseBlendMode) {
-      blendMode(SCREEN)
-    }
+    // if (window.canUseBlendMode) {
+    //   blendMode(SCREEN)
+    // }
 
     tentacle = words.length * 2 > 24 ? 24 : words.length * 2
     tentacle = tentacle == 0 ? 1 : tentacle
@@ -317,9 +319,7 @@ function draw() {
         translate(0, -height / 20)
         rotate(sin(i * 800 / (mouseX + 0.1)) + j / 50 + frameCount / 50 + i * 600 / (mouseY + 0.1))
         scale(noise(j, frameCount / 50) / 2 + 0.6 + map(mouseX, 0, width, -0.1, 0.2))
-        // fill(red_colors[int(map(noise(i, j), 0, 1, 0, red_colors.length - 1))])
         fill(red_colors[i % red_colors.length])
-        // fill(map(alphabet.size,0,26,0,255),0,0,map(alphabet.size,0,26,50,200))
         push()
         scale(noise(i, j, frameCount / 50) * map(hearts, 1, 50, 0.7, 0.5))
         rotate(-PI * 1 / 4)
@@ -446,23 +446,18 @@ function draw() {
     drawingContext.shadowOffsetY = -2;
     drawingContext.shadowBlur = 20;
     drawingContext.shadowColor = '#eeeeee77';
-
     main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel,0,255,0,100))
     main_lp_1.show(start, 0, end, 0, 10, 2)
-
     pop()
 
-
+   // hint
     pop()
-    // hint
     push()
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
     text('Yelling or whispering, that is a question!', w / 2 - 200, h * 0.82, 400, 150)
-    text(`Vol:${previousLevel.toFixed(2)}, Freq:${previousAccumlate}`, w / 2, h * 0.88)
-    text(level, w / 2, h * 0.95)
-
+    text(`Vol: ${previousLevel-4} - Freq: ${previousAccumlate-3}`, w / 2, h * 0.88)
     pop()
 
   }
@@ -494,7 +489,7 @@ function draw() {
   } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
     push()
     rectMode(CENTER)
-    fill(90, 255)
+    fill(50, 255)
     noStroke()
     rect(w * 0.05, h / 2, 15, 50, 20)
     pop()
@@ -502,7 +497,7 @@ function draw() {
   } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
     push()
     rectMode(CENTER)
-    fill(90, 255)
+    fill(50, 255)
     noStroke()
     rect(w * 0.95, h / 2, 15, 50, 20)
     pop()
