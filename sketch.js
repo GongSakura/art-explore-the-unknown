@@ -10,7 +10,7 @@ let background_noise
 let radius
 
 // three scenes, 1,2,3
-let scene = 1
+let scene = 2
 
 // all colors
 // let red_colors = ['#ffcdb2', '#DB6C79', '#b23a48', '#c9184a', '#f38375', '#fcb9b2', '#ffe3e0']
@@ -33,7 +33,7 @@ let textfield
 
 // ** to record the first letter of each input **
 // if player can enter up to 26, then it will gained all the red colors
-let alphabet = new Set()
+let alphabet = 0
 
 let words = []
 let textParticles = []
@@ -45,6 +45,7 @@ let tentacle
 // depends on the words length
 let hearts
 
+// draw a random heart
 function TextParticle(str, x, y) {
   this.x = x
   this.y = y
@@ -102,6 +103,21 @@ function TextParticle(str, x, y) {
     this.update()
   }
 }
+function drawHeart(x,y){
+  push()
+  rectMode(CENTER)
+  noStroke()
+  // fill( red_colors_gained[int(map(noise(y,x),0,1,0,red_colors_gained.length))])
+  fill( color('#6d6875'))
+  translate(x,y)
+  rotate(sin(x))
+  scale(map(noise(x,y),0,1,0.05,0.6))
+  rotate(-PI * 1 / 4)
+  rect(0, -15, 30, 60, 40, 40, 0, 0)
+  rotate(PI * 2 / 4)
+  rect(0, -15, 30, 60, 40, 40, 0, 0)
+  pop()
+}
 
 function inputText() {
 
@@ -109,11 +125,7 @@ function inputText() {
   let sentences = textfield.value()
   words_len = sentences.length
   words = sentences.split(' ')
-  let letter = sentences.charAt(0).toUpperCase()
-  if (letter.charCodeAt() >= 65 && letter.charCodeAt() <= 90) {
-    alphabet.add(sentences.charAt(0))
-
-  }
+  alphabet = alphabet>26?26:alphabet+1
 
   textfield.value('')
   let limit = words_len > 200 ? 1 : words.length > 6 ? 6 : words.length
@@ -126,7 +138,6 @@ function inputText() {
       textParticles.push(new TextParticle(words[i], random(w * 0.3, w * 0.7), random(h * 0.3, h * 0.7)))
     }
   }
-
 
   mouseX = random(1) < 0.5 ? random(w * 0.8, w) : random(w * 0.2)
   mouseY = random(h * 0.8, h)
@@ -141,6 +152,9 @@ function inputText() {
 // ** to record the number of different draws **
 // if next one is more complicated than last one, if plyer can draw up to 10 complex painting, it will gained all the green colors
 let paintings = 0
+let paintCanvas
+let paintTracks=new Map()
+let previousDist=0
 
 
 // ============= scene three config =============
@@ -158,8 +172,6 @@ let accumlate_high = 1
 let micIsActive = false
 let voiceRecord = new Map()
 let circleParticles = []
-
-let lastFrameCount = 0
 let main_lp_2 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 1], 4)
 let main_lp_1 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 2] ? blue_colors_gained[blue_colors_gained.length - 2] : '#eeeeeeaa', 4)
 function LinkParticle(c, sw) {
@@ -218,7 +230,6 @@ function CircleParticle(level) {
   }
 }
 
-
 // grainy effect for background
 function setNoise(ctx) {
   ctx.background(230, 227, 225);
@@ -236,7 +247,6 @@ function setNoise(ctx) {
   }
   ctx.updatePixels();
 }
-
 
 
 // ==============================================
@@ -266,23 +276,18 @@ function setup() {
   // background noise
   background_noise = createGraphics(w, h)
   setNoise(background_noise)
-
+  paintCanvas = createGraphics(w,h)
 
 }
 
 function draw() {
-
-
-  // let wave = fft.waveform()
-  // background(color('#222'))
-  // background(20, 200)
   image(background_noise, 0, 0)
 
   frameRate(30)
   // ========================== scene one ==============================
   if (scene == 1) {
     textfield.show()
-  
+
     // show text particles
     for (let i = 0; i < textParticles.length; i++) {
       textParticles[i].show()
@@ -299,22 +304,19 @@ function draw() {
     ellipse(0, 0, h / 2, h / 2)
     pop()
 
-    // if (window.canUseBlendMode) {
-    //   blendMode(SCREEN)
-    // }
-
     tentacle = words.length * 2 > 24 ? 24 : words.length * 2
     tentacle = tentacle == 0 ? 1 : tentacle
     if (tentacle != 1 && tentacle % 2 == 1) {
       tentacle++
     }
-    // hearts = words_len > 20 ? 20 : words_len
+
     hearts = words_len % 20
+    hearts = hearts==0? 1: hearts
 
     for (let j = 0; j < tentacle; j++) {
       rotate(TWO_PI * j / tentacle)
       push()
-      // for (let i = 0; i < 20; i++) {
+    
       for (let i = 0; i < hearts; i++) {
         translate(0, -height / 20)
         rotate(sin(i * 800 / (mouseX + 0.1)) + j / 50 + frameCount / 50 + i * 600 / (mouseY + 0.1))
@@ -330,8 +332,6 @@ function draw() {
         if (hearts > 12) {
           push()
           for (let k = 0; k < 2; k++) {
-            // fill(255)
-            // ellipse(map(noise(i,k),0,1,-50,50), map(noise(j,k),0,1,-20,30), 2)
             fill((red_colors[(red_colors.length - k) % red_colors.length]))
             if (k % 2 == 0) {
               rect(sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2)
@@ -358,6 +358,26 @@ function draw() {
   // ========================== scene two ==============================
   else if (scene == 2) {
     textfield.hide()
+    image(paintCanvas,0,0)
+    if (mouseIsPressed){
+      paintTracks.set(int(mouseX),int(mouseY))
+    }
+    push()
+    // paintCanvas.strokeWeight(2)
+    // paintCanvas.stroke(0)
+    // paintCanvas.noFill()
+    // paintCanvas.beginShape()
+    drawHeart
+    for(let [k,v] of paintTracks.entries()){
+      drawHeart(k,v)
+    }
+    // for(let i=0; i<paintTracks.length; i++){
+    //   drawHeart(paintTracks[i][0],paintTracks[i][1])
+    //   // paintCanvas.curveVertex(paintTracks[i][0],paintTracks[i][1])
+    // }
+    // paintCanvas.endShape()
+    pop()
+  
 
   }
   // ========================== scene three ==============================
@@ -375,17 +395,18 @@ function draw() {
     }
 
     let accumlate = level >= 80 ? accumlate_high : accumlate_low
+    // record vol and freq
     if (level > 10) {
       if (voiceRecord.has(level)) {
         let obj = voiceRecord.get(level)
         obj.count++
-        obj.accumlate =  (obj.accumlate+ accumlate)/2
+        obj.accumlate = (obj.accumlate + accumlate) / 2
       } else {
         voiceRecord.set(level, { "count": 1, "accumlate": accumlate })
       }
     }
 
-
+    // pick up the vol and freq which show up mostly
     if (level < 10 && voiceRecord.size != 0) {
       let largest = 0
       let freq = 0
@@ -404,14 +425,11 @@ function draw() {
       voiceRecord.clear()
     }
 
-
     // gain blue colors
     voicesLevel.add(int(level))
     voices = voicesLevel.size
 
-
-
-    // electric connection
+    // electric connection, circle background
     push()
     rectMode(CENTER)
     translate(width / 2, height * 0.4)
@@ -423,12 +441,12 @@ function draw() {
     ellipse(0, 0, h / 2 - map(level, 0, 255, 0, h / 8), h / 2 - map(level, 0, 255, 0, h / 8))
     fill(0)
 
-    // anchor
-    let radius_voice = radius - map(level, 0, 255, 0, h / 8)
+    // anchor decoration and text annoation 
+    let radius_voice = level > 10 ? radius - map(level, 0, 255, 0, h / 8) : radius
     for (i = 0; i < 12; i++) {
       rect(radius_voice * cos(i * TWO_PI / 12), radius_voice * sin(i * TWO_PI / 12), 8)
     }
-    // decoration
+
     rect(radius * 1.12, 0, 20, 5)
     rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
     textSize(14)
@@ -437,8 +455,8 @@ function draw() {
     text('360°', -radius * 1.35, 5)
 
 
-    let start = (radius - map(level, 0, 100, 1, 50))
-    let end = (radius - map(level, 0, 100, 1, 50)) * cos(6 * TWO_PI / 12)
+    let start = level > 10 ? (radius - map(level, 0, 100, 1, 50)) : radius
+    let end = level > 10 ? (radius - map(level, 0, 100, 1, 50)) * -1 : -radius
 
     // main axis  
     push()
@@ -446,18 +464,18 @@ function draw() {
     drawingContext.shadowOffsetY = -2;
     drawingContext.shadowBlur = 20;
     drawingContext.shadowColor = '#eeeeee77';
-    main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel,0,255,0,100))
+    main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100))
     main_lp_1.show(start, 0, end, 0, 10, 2)
     pop()
 
-   // hint
+    // hint
     pop()
     push()
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
     text('Yelling or whispering, that is a question!', w / 2 - 200, h * 0.82, 400, 150)
-    text(`Vol: ${previousLevel-4} - Freq: ${previousAccumlate-3}`, w / 2, h * 0.88)
+    text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.88)
     pop()
 
   }
@@ -466,11 +484,11 @@ function draw() {
   push()
   noStroke()
   rectMode(CENTER)
-  fill(map(alphabet.size, 0, 26, 20, 220), 0, 0, map(alphabet.size, 0, 26, 20, 200))
+  fill(map(alphabet, 0, 26, 20, 180), 0, 0, map(alphabet, 0, 26, 20, 180))
   rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, map(paintings, 0, 10, 20, 220), 0, map(paintings, 0, 10, 20, 200))
+  fill(0, map(paintings, 0, 10, 20, 180), 0, map(paintings, 0, 10, 20, 180))
   rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, 0, map(voices, 0, 255, 20, 220), map(voices, 0, 255, 20, 200))
+  fill(0, 0, map(voices, 0, 255, 20, 180), map(voices, 0, 255, 20, 180))
   rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
   pop()
 
@@ -562,6 +580,19 @@ function mouseClicked() {
 
 }
 
+function mouseReleased(){
+  if(scene==2){
+    let x = paintTracks.keys()
+    let avg_x= 0
+    x.map((e)=> avg_x+e)
+    console.log(avg_x);
+    // let y  =paintTracks.values()
+    console.log(x);
+    // alert(avg_x,avg_y)
+    paintCanvas.clear()
+    paintTracks.clear()
+  }
+}
 // when you hit the spacebar, what's currently on the canvas will be saved (as
 // a "thumbnail.png" file) to your downloads folder. this is a good starting
 // point for the final thumbnail of your project (this allows us to make a
