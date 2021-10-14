@@ -103,15 +103,15 @@ function TextParticle(str, x, y) {
     this.update()
   }
 }
-function drawHeart(x,y){
+function drawHeart(x, y) {
   push()
   rectMode(CENTER)
   noStroke()
   // fill( red_colors_gained[int(map(noise(y,x),0,1,0,red_colors_gained.length))])
-  fill( color('#6d6875'))
-  translate(x,y)
+  fill(color('#6d6875'))
+  translate(x, y)
   rotate(sin(x))
-  scale(map(noise(x,y),0,1,0.05,0.6))
+  scale(map(noise(x, y), 0, 1, 0.05, 0.6))
   rotate(-PI * 1 / 4)
   rect(0, -15, 30, 60, 40, 40, 0, 0)
   rotate(PI * 2 / 4)
@@ -125,7 +125,7 @@ function inputText() {
   let sentences = textfield.value()
   words_len = sentences.length
   words = sentences.split(' ')
-  alphabet = alphabet>26?26:alphabet+1
+  alphabet = alphabet > 26 ? 26 : alphabet + 1
 
   textfield.value('')
   let limit = words_len > 200 ? 1 : words.length > 6 ? 6 : words.length
@@ -153,8 +153,39 @@ function inputText() {
 // if next one is more complicated than last one, if plyer can draw up to 10 complex painting, it will gained all the green colors
 let paintings = 0
 let paintCanvas
-let paintTracks=new Map()
-let previousDist=0
+let perlinCanvas
+let paintTracks = new Map()
+let previousDist = 0
+let perlinParticles = []
+let speed=0.0015
+function PerlinParticle(x, y) {
+  this.pos = createVector(x, y)
+ 
+
+  this.update = () => {
+    let speed = random(0.005,0.005)
+    // let angle = noise(this.pos.x*0.005, this.pos.y*0.005)*TWO_PI+PI*random(50);
+    let angle = map(noise(this.pos.x * speed, this.pos.y * speed), 0, 1, 0, 480);
+    let dir = createVector(sin(angle), cos(angle))
+    this.pos.add(dir)
+  }
+  this.hasDone = false
+  this.show = (c) => {
+    // check edge
+    if (dist(this.pos.x, this.pos.y, 0, 0) > h / 4) {
+      return this.hasDone = true
+    }
+    // let r = map(noise(this.pos.x * speed, this.pos.y * speed), 0, 1, 1, 5);
+    let r =5
+    push()
+    perlinCanvas.noStroke()
+    perlinCanvas.fill(color(c))
+
+    perlinCanvas.ellipse(this.pos.x, this.pos.y,r,r)
+    pop()
+    this.update()
+  }
+}
 
 
 // ============= scene three config =============
@@ -276,8 +307,10 @@ function setup() {
   // background noise
   background_noise = createGraphics(w, h)
   setNoise(background_noise)
-  paintCanvas = createGraphics(w,h)
-
+  paintCanvas = createGraphics(w, h)
+  perlinCanvas = createGraphics(h / 2, h / 2)
+  perlinCanvas.translate(h/4,h/4)
+  
 }
 
 function draw() {
@@ -311,12 +344,12 @@ function draw() {
     }
 
     hearts = words_len % 20
-    hearts = hearts==0? 1: hearts
+    hearts = hearts == 0 ? 1 : hearts
 
     for (let j = 0; j < tentacle; j++) {
       rotate(TWO_PI * j / tentacle)
       push()
-    
+
       for (let i = 0; i < hearts; i++) {
         translate(0, -height / 20)
         rotate(sin(i * 800 / (mouseX + 0.1)) + j / 50 + frameCount / 50 + i * 600 / (mouseY + 0.1))
@@ -358,26 +391,48 @@ function draw() {
   // ========================== scene two ==============================
   else if (scene == 2) {
     textfield.hide()
-    image(paintCanvas,0,0)
-    if (mouseIsPressed){
-      paintTracks.set(int(mouseX),int(mouseY))
+    image(paintCanvas, 0, 0)
+    if (mouseIsPressed) {
+      paintTracks.set(int(mouseX), int(mouseY))
     }
+
+
     push()
-    // paintCanvas.strokeWeight(2)
-    // paintCanvas.stroke(0)
-    // paintCanvas.noFill()
-    // paintCanvas.beginShape()
-    drawHeart
-    for(let [k,v] of paintTracks.entries()){
-      drawHeart(k,v)
-    }
-    // for(let i=0; i<paintTracks.length; i++){
-    //   drawHeart(paintTracks[i][0],paintTracks[i][1])
-    //   // paintCanvas.curveVertex(paintTracks[i][0],paintTracks[i][1])
-    // }
-    // paintCanvas.endShape()
+    noStroke()
+    rectMode(CENTER)
+    translate(width / 2, height * 0.4)
+
+    push()
+    fill(22)
+    ellipse(0, 0, h / 2, h / 2)
     pop()
-  
+
+    // draw user's paint
+    for (let i = perlinParticles.length - 1; i >= 0; i--) {
+      perlinParticles[i].show(random(green_colors))
+      if(perlinParticles[i].hasDone){
+        perlinParticles.splice(i,1)
+      }
+    }
+    // perlinCanvas.background(255)
+    image(perlinCanvas,-h/4,-h/4)
+    pop()
+
+    push()
+    drawHeart
+    for (let [k, v] of paintTracks.entries()) {
+      drawHeart(k, v)
+    }
+    pop()
+
+    // hint
+    push()
+    textSize(16)
+    textAlign(CENTER)
+    fill(color('#222'))
+    text('Can you draw a shape more complicated than before?', w / 2 - 200, h * 0.82, 400, 150)
+    pop()
+
 
   }
   // ========================== scene three ==============================
@@ -580,15 +635,31 @@ function mouseClicked() {
 
 }
 
-function mouseReleased(){
-  if(scene==2){
-    let x = paintTracks.keys()
-    let avg_x= 0
-    x.map((e)=> avg_x+e)
-    console.log(avg_x);
-    // let y  =paintTracks.values()
-    console.log(x);
-    // alert(avg_x,avg_y)
+function mouseReleased() {
+  if (scene == 2) {
+    perlinParticles = []
+    let sum_x = 0
+    let sum_y = 0
+    let largest_x = 0
+    let largest_y = 0
+    let smallest_x = 999
+    let smallest_y = 999
+    for (let [key, value] of paintTracks.entries()) {
+      sum_x += key
+      sum_y += value
+      largest_x = key > largest_x ? key : largest_x
+      largest_y = value > largest_y ? value : largest_y
+      smallest_x = key < smallest_x ? key : smallest_x
+      smallest_x = value < smallest_y ? value : smallest_y
+    }
+    let avg_x = sum_x / paintTracks.size
+    let avg_y = sum_y / paintTracks.size
+    for (let [key, value] of paintTracks.entries()) {
+      let x = (key - avg_x) / (largest_x - smallest_x) * h / 2
+      let y = (value - avg_y) / (largest_y - smallest_y) * h / 2
+      perlinParticles.push(new PerlinParticle(x, y))
+    }
+
     paintCanvas.clear()
     paintTracks.clear()
   }
