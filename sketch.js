@@ -157,31 +157,31 @@ let perlinCanvas
 let paintTracks = new Map()
 let previousDist = 0
 let perlinParticles = []
-let speed=0.0015
+let sigma = 0
+
 function PerlinParticle(x, y) {
   this.pos = createVector(x, y)
- 
+  // this.speed = random(0.0005,0.005)
+  this.speed = 0.005
 
   this.update = () => {
-    let speed = random(0.005,0.005)
+    this.r = 4
     // let angle = noise(this.pos.x*0.005, this.pos.y*0.005)*TWO_PI+PI*random(50);
-    let angle = map(noise(this.pos.x * speed, this.pos.y * speed), 0, 1, 0, 480);
+    let angle = map(noise(this.pos.x * this.speed, this.pos.y * this.speed), 0, 1, 0, 480);
     let dir = createVector(sin(angle), cos(angle))
     this.pos.add(dir)
   }
   this.hasDone = false
   this.show = (c) => {
     // check edge
-    if (dist(this.pos.x, this.pos.y, 0, 0) > h / 4) {
+    if (dist(this.pos.x, this.pos.y, 0, 0) > h / 4.2) {
       return this.hasDone = true
     }
-    // let r = map(noise(this.pos.x * speed, this.pos.y * speed), 0, 1, 1, 5);
-    let r =5
     push()
     perlinCanvas.noStroke()
     perlinCanvas.fill(color(c))
 
-    perlinCanvas.ellipse(this.pos.x, this.pos.y,r,r)
+    perlinCanvas.ellipse(this.pos.x, this.pos.y, 4, 4)
     pop()
     this.update()
   }
@@ -309,8 +309,8 @@ function setup() {
   setNoise(background_noise)
   paintCanvas = createGraphics(w, h)
   perlinCanvas = createGraphics(h / 2, h / 2)
-  perlinCanvas.translate(h/4,h/4)
-  
+  perlinCanvas.translate(h / 4, h / 4)
+
 }
 
 function draw() {
@@ -396,7 +396,6 @@ function draw() {
       paintTracks.set(int(mouseX), int(mouseY))
     }
 
-
     push()
     noStroke()
     rectMode(CENTER)
@@ -406,16 +405,16 @@ function draw() {
     fill(22)
     ellipse(0, 0, h / 2, h / 2)
     pop()
-
+    //  perlinCanvas.background(255)
     // draw user's paint
     for (let i = perlinParticles.length - 1; i >= 0; i--) {
       perlinParticles[i].show(random(green_colors))
-      if(perlinParticles[i].hasDone){
-        perlinParticles.splice(i,1)
+      if (perlinParticles[i].hasDone) {
+        perlinParticles.splice(i, 1)
       }
     }
-    // perlinCanvas.background(255)
-    image(perlinCanvas,-h/4,-h/4)
+
+    image(perlinCanvas, -h / 4, -h / 4)
     pop()
 
     push()
@@ -637,13 +636,18 @@ function mouseClicked() {
 
 function mouseReleased() {
   if (scene == 2) {
+    // remove all perlin particles
     perlinParticles = []
+    for (let i = perlinParticles.length - 1; i >= 0; i++) {
+      // delete perlinParticles[i]
+    }
     let sum_x = 0
     let sum_y = 0
     let largest_x = 0
     let largest_y = 0
     let smallest_x = 999
     let smallest_y = 999
+    let new_sigma = 0
     for (let [key, value] of paintTracks.entries()) {
       sum_x += key
       sum_y += value
@@ -658,10 +662,16 @@ function mouseReleased() {
       let x = (key - avg_x) / (largest_x - smallest_x) * h / 2
       let y = (value - avg_y) / (largest_y - smallest_y) * h / 2
       perlinParticles.push(new PerlinParticle(x, y))
+      new_sigma += Math.pow((key - avg_x), 2) + Math.pow((value - avg_y), 2)
     }
-
+    new_sigma /= paintTracks.size
+    if (new_sigma > sigma) {
+      paintings++
+      sigma=new_sigma
+    }
     paintCanvas.clear()
     paintTracks.clear()
+    perlinCanvas.clear()
   }
 }
 // when you hit the spacebar, what's currently on the canvas will be saved (as
