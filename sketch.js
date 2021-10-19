@@ -13,7 +13,23 @@ let radius
 let scene = 2
 
 // all colors
-// let red_colors = ['#ffcdb2', '#DB6C79', '#b23a48', '#c9184a', '#f38375', '#fcb9b2', '#ffe3e0']
+const colorSet = [
+  ['#2274A5','#E7DFC6','#E9F1F7','#816C61'],
+  ['#BDD9BF','#2E4052','#FFC857','#FFFFFF'],
+  ['#586A6A','#9DC5BB ','#FFC857','#FFFFFF'],
+  ['#ACCBE1','#7C98B3 ','#637081','#536B78'],
+  ['#F0EBD8','#748CAB','#3E5C76','#1D2D44'],
+  ['#ffcdb2', '#ffb4a2', '#e5989b', '#b5838d'], 
+  ['#161925', '#23395B', '#406E8E', '#8EA8C3'],
+  ['#DAE2DF', '#A2A7A5', '#6D696A', '#FFFFFF'],
+  ['#3A405A', '#F9DEC9', '#99B2DD', '#E9AFA3'], 
+  ['#383F51', '#D1BEB0', '#3C4F76', '#AB9F9D'], 
+  ['#FED766', '#2C2C34', '#FF8E72', '#EFF1F3'],
+  ['#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
+]
+
+const colorLength = colorSet.length
+console.log(colorLength);
 let red_colors = ['#ffcdb2', '#ffb4a2', '#e5989b', '#b5838d', '#6d6875']
 let green_colors = ['#52b788', '#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
 let blue_colors = ['#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2d9']
@@ -44,6 +60,8 @@ let tentacle
 
 // depends on the words length
 let hearts
+
+let color_1 = "1"
 
 // draw a random heart
 function TextParticle(str, x, y) {
@@ -103,21 +121,7 @@ function TextParticle(str, x, y) {
     this.update()
   }
 }
-function drawHeart(x, y) {
-  push()
-  rectMode(CENTER)
-  noStroke()
-  // fill( red_colors_gained[int(map(noise(y,x),0,1,0,red_colors_gained.length))])
-  fill(color('#6d6875'))
-  translate(x, y)
-  rotate(sin(x))
-  scale(map(noise(x, y), 0, 1, 0.05, 0.6))
-  rotate(-PI * 1 / 4)
-  rect(0, -15, 30, 60, 40, 40, 0, 0)
-  rotate(PI * 2 / 4)
-  rect(0, -15, 30, 60, 40, 40, 0, 0)
-  pop()
-}
+
 
 function inputText() {
 
@@ -157,18 +161,20 @@ let perlinCanvas
 let paintTracks = new Map()
 let previousDist = 0
 let perlinParticles = []
+let color_2 = "1"
 let sigma = 0
 
 function PerlinParticle(x, y) {
   this.pos = createVector(x, y)
   // this.speed = random(0.0005,0.005)
-  this.speed = 0.005
+  this.speed = 0.05
 
   this.update = () => {
     this.r = 4
     // let angle = noise(this.pos.x*0.005, this.pos.y*0.005)*TWO_PI+PI*random(50);
-    let angle = map(noise(this.pos.x * this.speed, this.pos.y * this.speed), 0, 1, 0, 480);
+    let angle = map(noise(this.pos.x * this.speed, this.pos.y * this.speed), 0, 1, 0, 2*TWO_PI);
     let dir = createVector(sin(angle), cos(angle))
+ 
     this.pos.add(dir)
   }
   this.hasDone = false
@@ -180,14 +186,31 @@ function PerlinParticle(x, y) {
     push()
     perlinCanvas.noStroke()
     perlinCanvas.fill(color(c))
-
     perlinCanvas.ellipse(this.pos.x, this.pos.y, 4, 4)
     pop()
     this.update()
   }
 }
 
-
+function drawTrack(x, y) {
+  push()
+  rectMode(CENTER)
+  noStroke()
+  const r_1 = noise(x,y)
+  const r_2 = int(map(noise(x, y),0,1,1,colorLength+1))+''
+  const r_3 = int(map(noise(x, y),0,1,1,4))
+  fill(colorSet[r_2][r_3])
+  translate(x, y)
+  // scale(map(noise(x, y), 0, 1, 0.05, 0.6))
+  if(r_1<0.3){
+    rect(0,0,10,10)
+  }else if (r_1<0.6){
+    ellipse(0,0,10,10)
+  }else{
+    triangle(0,0, 10, 10, 10, -10)
+  }
+  pop()
+}
 // ============= scene three config =============
 // ** to record the volumn of different speaking **
 // if player's voice volumn can reach all levels, then it will gained all the blue colors
@@ -203,12 +226,15 @@ let accumlate_high = 1
 let micIsActive = false
 let voiceRecord = new Map()
 let circleParticles = []
-let main_lp_2 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 1], 4)
-let main_lp_1 = new LinkParticle(blue_colors_gained[blue_colors_gained.length - 2] ? blue_colors_gained[blue_colors_gained.length - 2] : '#eeeeeeaa', 4)
+let main_lp_2 = new LinkParticle("#F4F4F6", 4)
+let main_lp_1 = new LinkParticle('#E6E6E9', 4)
 function LinkParticle(c, sw) {
   this.sw = sw
   this.c = c
-  this.show = (x1, y1, x2, y2, frequency, amplitude) => {
+  this.show = (x1, y1, x2, y2, frequency, amplitude,c) => {
+    if(c){
+      this.c=c
+    }
     let start = createVector(x1, y1)
     let end = createVector(x2, y2)
     let head = frequency * map(noise(x1, y1), 0, 1, 0.05, 0.2)
@@ -407,7 +433,8 @@ function draw() {
     //  perlinCanvas.background(255)
     // draw user's paint
     for (let i = perlinParticles.length - 1; i >= 0; i--) {
-      perlinParticles[i].show(random(green_colors))
+      const r = floor(map(noise(i,perlinParticles[i].pos.x,perlinParticles[i].pos.y),0,1,2,4))
+      perlinParticles[i].show(colorSet[color_2][r])
       if (perlinParticles[i].hasDone) {
         perlinParticles.splice(i, 1)
       }
@@ -417,9 +444,9 @@ function draw() {
     pop()
 
     push()
-    drawHeart
+
     for (let [k, v] of paintTracks.entries()) {
-      drawHeart(k, v)
+      drawTrack(k, v)
     }
     pop()
 
@@ -436,8 +463,7 @@ function draw() {
   // ========================== scene three ==============================
   else if (scene == 3) {
     textfield.hide()
-
-    let level = mic?.getLevel() ? int(mic.getLevel()) : 0
+    const level = mic?.getLevel() ? int(mic.getLevel()) : 0
     if (level >= 80) {
       accumlate_high = accumlate_high + 8 > 84 ? 84 : accumlate_high + 8
     } else if (level > 10) {
@@ -446,12 +472,12 @@ function draw() {
       accumlate_high = 1
       accumlate_low = 1
     }
+    const accumlate = level >= 80 ? accumlate_high : accumlate_low
 
-    let accumlate = level >= 80 ? accumlate_high : accumlate_low
     // record vol and freq
     if (level > 10) {
       if (voiceRecord.has(level)) {
-        let obj = voiceRecord.get(level)
+        const obj = voiceRecord.get(level)
         obj.count++
         obj.accumlate = (obj.accumlate + accumlate) / 2
       } else {
@@ -461,16 +487,15 @@ function draw() {
 
     // pick up the vol and freq which show up mostly
     if (level < 10 && voiceRecord.size != 0) {
-      let largest = 0
+      let most = 0
       let freq = 0
       let vol = 0
       for (key of voiceRecord.keys()) {
-        let value = voiceRecord.get(key)
-        console.log(key, value);
-        if (value.count > largest) {
+        const value = voiceRecord.get(key)
+        if (value.count > most) {
           freq = value.accumlate
           vol = key
-          largest = value.count
+          most = value.count
         }
       }
       previousLevel = vol
@@ -504,8 +529,8 @@ function draw() {
     rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
     textSize(14)
     textStyle(BOLD)
-    text('0°', radius * 1.20, 5)
-    text('360°', -radius * 1.35, 5)
+    text('180°', radius * 1.20, 5)
+    text('0°', -radius * 1.35, 5)
 
 
     let start = level > 10 ? (radius - map(level, 0, 100, 1, 50)) : radius
@@ -527,7 +552,7 @@ function draw() {
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
-    text('Yelling or whispering, that is a question!', w / 2 - 200, h * 0.82, 400, 150)
+    text('Yelling or not yelling, that is a question!', w / 2 - 200, h * 0.82, 400, 150)
     text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.88)
     pop()
 
@@ -672,6 +697,9 @@ function mouseReleased() {
     paintCanvas.clear()
     paintTracks.clear()
     perlinCanvas.clear()
+    color_2++
+    color_2 = color_2%colorLength
+    console.log(color_2);
   }
 }
 // when you hit the spacebar, what's currently on the canvas will be saved (as
