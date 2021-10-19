@@ -303,7 +303,6 @@ function setup() {
   textfield.hide()
   pop()
 
-
   // background noise
   background_noise = createGraphics(w, h)
   setNoise(background_noise)
@@ -583,6 +582,7 @@ function draw() {
 function mouseClicked() {
   if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
     micIsActive = !micIsActive
+    
     // todo: play sound
     if (micIsActive) {
       if (!mic) {
