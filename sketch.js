@@ -3,36 +3,26 @@
  */
 
 // ============= global config =============
-// screen w/h
+// screen w and h
 let w = 0
 let h = 0
 let background_noise
 let radius
 
 // three scenes, 1,2,3
-let scene = 2
+let scene = 1
 
 // all colors
 const colorSet = [
-  ['#2274A5','#E7DFC6','#E9F1F7','#816C61'],
-  ['#BDD9BF','#2E4052','#FFC857','#FFFFFF'],
   ['#586A6A','#9DC5BB ','#FFC857','#FFFFFF'],
-  ['#ACCBE1','#7C98B3 ','#637081','#536B78'],
-  ['#F0EBD8','#748CAB','#3E5C76','#1D2D44'],
-  ['#ffcdb2', '#ffb4a2', '#e5989b', '#b5838d'], 
-  ['#161925', '#23395B', '#406E8E', '#8EA8C3'],
-  ['#DAE2DF', '#A2A7A5', '#6D696A', '#FFFFFF'],
-  ['#3A405A', '#F9DEC9', '#99B2DD', '#E9AFA3'], 
-  ['#383F51', '#D1BEB0', '#3C4F76', '#AB9F9D'], 
   ['#FED766', '#2C2C34', '#FF8E72', '#EFF1F3'],
-  ['#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
 ]
 
 const colorLength = colorSet.length
-console.log(colorLength);
 let red_colors = ['#ffcdb2', '#ffb4a2', '#e5989b', '#b5838d', '#6d6875']
 let green_colors = ['#52b788', '#74c69d', '#95d5b2', '#b7e4c7', '#d8f3dc']
 let blue_colors = ['#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2d9']
+
 // player gained colors
 let red_colors_gained = [...red_colors]
 let blue_colors_gained = [...blue_colors]
@@ -60,8 +50,6 @@ let tentacle
 
 // depends on the words length
 let hearts
-
-let color_1 = "1"
 
 // draw a random heart
 function TextParticle(str, x, y) {
@@ -161,24 +149,28 @@ let perlinCanvas
 let paintTracks = new Map()
 let previousDist = 0
 let perlinParticles = []
-let color_2 = "1"
-let sigma = 0
+let scene_2_start=0
+let cost=0
+let wealth=0
+let wealthRecord=new Set()
+let canAdd = false
+let gainRatio=0
 
 function PerlinParticle(x, y) {
   this.pos = createVector(x, y)
-  // this.speed = random(0.0005,0.005)
-  this.speed = 0.05
+  this.speed = random(0.004,0.008)
 
   this.update = () => {
     this.r = 4
     // let angle = noise(this.pos.x*0.005, this.pos.y*0.005)*TWO_PI+PI*random(50);
-    let angle = map(noise(this.pos.x * this.speed, this.pos.y * this.speed), 0, 1, 0, 2*TWO_PI);
+    // let angle = map(noise(this.pos.x * this.speed, this.pos.y * this.speed), 0, 1, 0, 2*TWO_PI);
+    let angle = map(noise(this.pos.x * this.speed, this.pos.y * this.speed), 0, 1, 0, 480);
     let dir = createVector(sin(angle), cos(angle))
- 
     this.pos.add(dir)
   }
   this.hasDone = false
   this.show = (c) => {
+    wealthRecord.add(int(this.pos.x))
     // check edge
     if (dist(this.pos.x, this.pos.y, 0, 0) > h / 4.2) {
       return this.hasDone = true
@@ -186,7 +178,7 @@ function PerlinParticle(x, y) {
     push()
     perlinCanvas.noStroke()
     perlinCanvas.fill(color(c))
-    perlinCanvas.ellipse(this.pos.x, this.pos.y, 4, 4)
+    perlinCanvas.ellipse(this.pos.x, this.pos.y, 5, 5)
     pop()
     this.update()
   }
@@ -197,8 +189,8 @@ function drawTrack(x, y) {
   rectMode(CENTER)
   noStroke()
   const r_1 = noise(x,y)
-  const r_2 = int(map(noise(x, y),0,1,1,colorLength+1))+''
-  const r_3 = int(map(noise(x, y),0,1,1,4))
+  const r_2 = int(map(noise(x, y),0,1,0,colorLength))
+  const r_3 = int(map(noise(x, y),0,1,0,4))
   fill(colorSet[r_2][r_3])
   translate(x, y)
   // scale(map(noise(x, y), 0, 1, 0.05, 0.6))
@@ -228,7 +220,7 @@ let voiceRecord = new Map()
 let circleParticles = []
 let main_lp_2 = new LinkParticle("#F4F4F6", 4)
 let main_lp_1 = new LinkParticle('#E6E6E9', 4)
-function LinkParticle(c, sw) {
+function LinkParticle(c, sw) {  
   this.sw = sw
   this.c = c
   this.show = (x1, y1, x2, y2, frequency, amplitude,c) => {
@@ -324,7 +316,7 @@ function setup() {
   push()
   textfield = createInput('')
   textfield.size(w * 0.2)
-  textfield.position(w * 0.385, h * 0.9)
+  textfield.position(w * 0.385, h * 0.86)
   textfield.changed(inputText)
   textfield.hide()
   pop()
@@ -380,6 +372,7 @@ function draw() {
         rotate(sin(i * 800 / (mouseX + 0.1)) + j / 50 + frameCount / 50 + i * 600 / (mouseY + 0.1))
         scale(noise(j, frameCount / 50) / 2 + 0.6 + map(mouseX, 0, width, -0.1, 0.2))
         fill(red_colors[i % red_colors.length])
+
         push()
         scale(noise(i, j, frameCount / 50) * map(hearts, 1, 50, 0.7, 0.5))
         rotate(-PI * 1 / 4)
@@ -387,6 +380,7 @@ function draw() {
         rotate(PI * 2 / 4)
         rect(0, -15, 30, 60, 40, 40, 0, 0)
         pop()
+
         if (hearts > 12) {
           push()
           for (let k = 0; k < 2; k++) {
@@ -409,7 +403,7 @@ function draw() {
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
-    text('The same word can be heartrending or exhilarating. That is unexpected.', w / 2 - 200, h * 0.82, 400, 150)
+    text('Honey, say something, bad or good, everything is ok.', w / 2 - 200, h * 0.82, 400, 150)
     pop()
 
   }
@@ -432,19 +426,29 @@ function draw() {
     pop()
     //  perlinCanvas.background(255)
     // draw user's paint
+    if(frameCount-scene_2_start<100){
     for (let i = perlinParticles.length - 1; i >= 0; i--) {
-      const r = floor(map(noise(i,perlinParticles[i].pos.x,perlinParticles[i].pos.y),0,1,2,4))
-      perlinParticles[i].show(colorSet[color_2][r])
+      perlinParticles[i].show(random(green_colors))
       if (perlinParticles[i].hasDone) {
         perlinParticles.splice(i, 1)
       }
     }
+    }else{
+      if(canAdd && wealth/cost >gainRatio){
+        gainRatio = wealth/cost
+        canAdd=false
+        paintings++
+        console.log(gainRatio);
 
+        // play gain sound
+      }
+    }
+    wealth=wealthRecord.size
     image(perlinCanvas, -h / 4, -h / 4)
+    
     pop()
 
     push()
-
     for (let [k, v] of paintTracks.entries()) {
       drawTrack(k, v)
     }
@@ -455,7 +459,9 @@ function draw() {
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
-    text('Can you draw a shape more complicated than before?', w / 2 - 200, h * 0.82, 400, 150)
+    text('Draw down your wealth.', w / 2 - 150, h * 0.81, 300, 150)
+    text('Someone can always cost the least to gain the greatest', w / 2 - 200, h * 0.84, 400, 150)
+    text(`Cost:${cost} - Wealth:${wealth}`, w / 2 - 200, h * 0.87, 400, 150)
     pop()
 
 
@@ -464,9 +470,9 @@ function draw() {
   else if (scene == 3) {
     textfield.hide()
     const level = mic?.getLevel() ? int(mic.getLevel()) : 0
-    if (level >= 80) {
+    if (level >= 128) {
       accumlate_high = accumlate_high + 8 > 84 ? 84 : accumlate_high + 8
-    } else if (level > 10) {
+    } else if (level > 30) {
       accumlate_low = accumlate_low + 4 > 32 ? 32 : accumlate_low + 4
     } else {
       accumlate_high = 1
@@ -475,7 +481,7 @@ function draw() {
     const accumlate = level >= 80 ? accumlate_high : accumlate_low
 
     // record vol and freq
-    if (level > 10) {
+    if (level >= 30) {
       if (voiceRecord.has(level)) {
         const obj = voiceRecord.get(level)
         obj.count++
@@ -486,7 +492,7 @@ function draw() {
     }
 
     // pick up the vol and freq which show up mostly
-    if (level < 10 && voiceRecord.size != 0) {
+    if (level < 30 && voiceRecord.size != 0) {
       let most = 0
       let freq = 0
       let vol = 0
@@ -515,26 +521,40 @@ function draw() {
     if (micIsActive) {
       rotate(frameCount / 500)
     }
+
+    
+
+    // circle background
+
     fill(22)
-    ellipse(0, 0, h / 2 - map(level, 0, 255, 0, h / 8), h / 2 - map(level, 0, 255, 0, h / 8))
-    fill(0)
+    if(level>30){
+      ellipse(0, 0, h / 2 - map(level, 30, 255, 0, h / 8), h / 2 - map(level, 30, 255, 0, h / 8))
+    }else{
+      ellipse(0, 0, h / 2 , h / 2 )
+    }
+    
+    
 
     // anchor decoration and text annoation 
-    let radius_voice = level > 10 ? radius - map(level, 0, 255, 0, h / 8) : radius
+    let radius_voice = level > 30 ? radius - map(level, 30, 255, 0, h / 8) : radius
+    fill(0)
     for (i = 0; i < 12; i++) {
       rect(radius_voice * cos(i * TWO_PI / 12), radius_voice * sin(i * TWO_PI / 12), 8)
     }
-
+   
     rect(radius * 1.12, 0, 20, 5)
     rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
     textSize(14)
     textStyle(BOLD)
-    text('180°', radius * 1.20, 5)
-    text('0°', -radius * 1.35, 5)
+    text('0°', radius * 1.20, 5)
+    text('180°', -radius * 1.35, 5)
 
 
-    let start = level > 10 ? (radius - map(level, 0, 100, 1, 50)) : radius
-    let end = level > 10 ? (radius - map(level, 0, 100, 1, 50)) * -1 : -radius
+    const start = level > 30 ? (radius - map(level, 30, 200, 1, 50)) : radius
+    const end = level > 30 ? (radius - map(level, 30, 200, 1, 50)) * -1 : -radius
+
+    const r_1 = int( map(noise(previousLevel,previousAccumlate),0,1,0,colorLength))
+    const r_2 = int(map(noise(previousAccumlate,previousLevel),0,1,0,4))
 
     // main axis  
     push()
@@ -542,8 +562,14 @@ function draw() {
     drawingContext.shadowOffsetY = -2;
     drawingContext.shadowBlur = 20;
     drawingContext.shadowColor = '#eeeeee77';
-    main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100))
-    main_lp_1.show(start, 0, end, 0, 10, 2)
+    if (level>0){
+      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100),colorSet[r_1][r_2])
+      main_lp_1.show(start, 0, end, 0, 10, 2,colorSet[r_1][(r_2+1)%4])
+    }else{
+      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100),"#F4F4F6")
+      main_lp_1.show(start, 0, end, 0, 10, 2,'#E6E6E9')
+    }
+
     pop()
 
     // hint
@@ -552,8 +578,8 @@ function draw() {
     textSize(16)
     textAlign(CENTER)
     fill(color('#222'))
-    text('Yelling or not yelling, that is a question!', w / 2 - 200, h * 0.82, 400, 150)
-    text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.88)
+    text('Speak out your eager to power', w / 2 - 200, h * 0.82, 400, 150)
+    text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.86)
     pop()
 
   }
@@ -670,9 +696,8 @@ function mouseReleased() {
     let sum_y = 0
     let largest_x = 0
     let largest_y = 0
-    let smallest_x = 999
-    let smallest_y = 999
-    let new_sigma = 0
+    let smallest_x = 9999
+    let smallest_y = 9999
     for (let [key, value] of paintTracks.entries()) {
       sum_x += key
       sum_y += value
@@ -687,19 +712,16 @@ function mouseReleased() {
       let x = (key - avg_x) / (largest_x - smallest_x) * h / 2
       let y = (value - avg_y) / (largest_y - smallest_y) * h / 2
       perlinParticles.push(new PerlinParticle(x, y))
-      new_sigma += Math.pow((key - avg_x), 2) + Math.pow((value - avg_y), 2)
     }
-    new_sigma /= paintTracks.size
-    if (new_sigma > sigma) {
-      paintings++
-      sigma=new_sigma
-    }
+    cost = paintTracks.size
+   
     paintCanvas.clear()
     paintTracks.clear()
     perlinCanvas.clear()
-    color_2++
-    color_2 = color_2%colorLength
-    console.log(color_2);
+    wealthRecord.clear()
+    scene_2_start=frameCount
+    canAdd=true
+  
   }
 }
 // when you hit the spacebar, what's currently on the canvas will be saved (as
