@@ -8,13 +8,18 @@ let w = 0
 let h = 0
 let background_noise
 let radius
+let speech1
+let speech2
+let speech3
+let speech4
+let keyboard 
 
-// three scenes, 1,2,3
-let scene = 1
+// three scenes, 0,1,2,3
+let scene = 0
 
 // all colors
 const colorSet = [
-  ['#586A6A','#9DC5BB ','#FFC857','#FFFFFF'],
+  ['#586A6A', '#9DC5BB ', '#FFC857', '#FFFFFF'],
   ['#FED766', '#2C2C34', '#FF8E72', '#EFF1F3'],
 ]
 
@@ -31,6 +36,34 @@ let green_colors_gained = [...green_colors]
 // bgm
 let bgm_1
 let fft
+
+// ============= scene zero config ============
+
+let rollFilm_img
+let macroPolo_img
+let magellan_img
+let action = false
+let scene_0_start = 0
+function typing() {
+  // typing effect
+  if(!keyboard.isPlaying()){
+    keyboard.play()
+  }
+  push()
+  translate(w / 2, h / 2)
+  textSize(36)
+  textStyle(BOLD)
+  textAlign(CENTER)
+  fill(0)
+  let str = 'Human Exploration.'
+  if(frameCount-scene_0_start<=90){
+    text(str.substring(0,(frameCount-scene_0_start)/5+1),0,0,400,50)
+  }else{
+ 
+    text(str,0,0,400,50)
+  }
+  pop()
+}
 
 // ============= scene one config =============
 
@@ -149,16 +182,16 @@ let perlinCanvas
 let paintTracks = new Map()
 let previousDist = 0
 let perlinParticles = []
-let scene_2_start=0
-let cost=0
-let wealth=0
-let wealthRecord=new Set()
+let scene_2_start = 0
+let cost = 0
+let wealth = 0
+let wealthRecord = new Set()
 let canAdd = false
-let gainRatio=0
+let gainRatio = 0
 
 function PerlinParticle(x, y) {
   this.pos = createVector(x, y)
-  this.speed = random(0.004,0.008)
+  this.speed = random(0.004, 0.008)
 
   this.update = () => {
     this.r = 4
@@ -188,18 +221,18 @@ function drawTrack(x, y) {
   push()
   rectMode(CENTER)
   noStroke()
-  const r_1 = noise(x,y)
-  const r_2 = int(map(noise(x, y),0,1,0,colorLength))
-  const r_3 = int(map(noise(x, y),0,1,0,4))
+  const r_1 = noise(x, y)
+  const r_2 = int(map(noise(x, y), 0, 1, 0, colorLength))
+  const r_3 = int(map(noise(x, y), 0, 1, 0, 4))
   fill(colorSet[r_2][r_3])
   translate(x, y)
   // scale(map(noise(x, y), 0, 1, 0.05, 0.6))
-  if(r_1<0.3){
-    rect(0,0,10,10)
-  }else if (r_1<0.6){
-    ellipse(0,0,10,10)
-  }else{
-    triangle(0,0, 10, 10, 10, -10)
+  if (r_1 < 0.3) {
+    rect(0, 0, 10, 10)
+  } else if (r_1 < 0.6) {
+    ellipse(0, 0, 10, 10)
+  } else {
+    triangle(0, 0, 10, 10, 10, -10)
   }
   pop()
 }
@@ -220,12 +253,12 @@ let voiceRecord = new Map()
 let circleParticles = []
 let main_lp_2 = new LinkParticle("#F4F4F6", 4)
 let main_lp_1 = new LinkParticle('#E6E6E9', 4)
-function LinkParticle(c, sw) {  
+function LinkParticle(c, sw) {
   this.sw = sw
   this.c = c
-  this.show = (x1, y1, x2, y2, frequency, amplitude,c) => {
-    if(c){
-      this.c=c
+  this.show = (x1, y1, x2, y2, frequency, amplitude, c) => {
+    if (c) {
+      this.c = c
     }
     let start = createVector(x1, y1)
     let end = createVector(x2, y2)
@@ -303,7 +336,13 @@ function setNoise(ctx) {
 function preload() {
   // load any assets (images, sounds, etc.) here
   bgm_1 = loadSound('assets/past-lives.mp3')
-  fft = new p5.FFT()
+  rollFilm_img = loadImage('assets/rollfilm.png')
+  macroPolo_img = loadImage('assets/MarcoPolo.jpg')
+  speech1 = loadSound('assets/speech1.mp3')
+  speech2 = loadSound('assets/speech2.mp3')
+  speech3 = loadSound('assets/speech3.mp3')
+  speech4 = loadSound('assets/speech4.mp3')
+  keyboard= loadSound('assets/keyboard.mp3')
 }
 
 function setup() {
@@ -312,7 +351,7 @@ function setup() {
   h = windowHeight
 
   radius = h / 4
-
+ 
   push()
   textfield = createInput('')
   textfield.size(w * 0.2)
@@ -332,8 +371,57 @@ function setup() {
 
 function draw() {
   image(background_noise, 0, 0)
-
   frameRate(30)
+
+  if (scene == 0) {
+    // roll film
+
+    if (!action) {
+      translate(w / 2, h / 2)
+      rectMode(CENTER)
+      image(rollFilm_img, -80, -20 + sin(frameCount / 8) * 10, 180, 150)
+      if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120) {
+        cursor(HAND)
+      } else {
+        cursor(ARROW)
+      }
+    } else {
+    
+      push()
+      fill(50)
+      rect(w / 2, h * 0.15, w, 50)
+      rect(w / 2, h * 0.85, w, 50)
+      pop()
+      const intervel = w / 24
+      push()
+      rectMode(CENTER)
+      for (let i = 0; i < 24; i++) {
+        rect((i * intervel + frameCount * 2) % w, h * 0.15, 30, 30, 4)
+        rect((i * intervel + frameCount * 2) % w, h * 0.85, 30, 30, 4)
+      }
+      pop()
+    
+      if (frameCount - scene_0_start <= 100) {
+        typing()
+      }else if (frameCount - scene_0_start <= 15000) {
+        if(keyboard.isPlaying()){
+          keyboard.stop()
+        }
+        push()
+        translate(-h/2,h/2)
+        let interval = w/4
+        for(let i =0;i<4; i++){
+          image(macroPolo_img,(i*interval+frameCount*5)%(w+h*0.5),-h*0.25,h*0.5,h*0.5)
+          console.log(i*interval+h*0.5);
+        }
+       
+       
+        pop()
+      }
+
+    }
+  }
+
   // ========================== scene one ==============================
   if (scene == 1) {
     textfield.show()
@@ -426,26 +514,26 @@ function draw() {
     pop()
     //  perlinCanvas.background(255)
     // draw user's paint
-    if(frameCount-scene_2_start<100){
-    for (let i = perlinParticles.length - 1; i >= 0; i--) {
-      perlinParticles[i].show(random(green_colors))
-      if (perlinParticles[i].hasDone) {
-        perlinParticles.splice(i, 1)
+    if (frameCount - scene_2_start < 100) {
+      for (let i = perlinParticles.length - 1; i >= 0; i--) {
+        perlinParticles[i].show(random(green_colors))
+        if (perlinParticles[i].hasDone) {
+          perlinParticles.splice(i, 1)
+        }
       }
-    }
-    }else{
-      if(canAdd && wealth/cost >gainRatio){
-        gainRatio = wealth/cost
-        canAdd=false
+    } else {
+      if (canAdd && wealth / cost > gainRatio) {
+        gainRatio = wealth / cost
+        canAdd = false
         paintings++
         console.log(gainRatio);
 
         // play gain sound
       }
     }
-    wealth=wealthRecord.size
+    wealth = wealthRecord.size
     image(perlinCanvas, -h / 4, -h / 4)
-    
+
     pop()
 
     push()
@@ -522,18 +610,18 @@ function draw() {
       rotate(frameCount / 500)
     }
 
-    
+
 
     // circle background
 
     fill(22)
-    if(level>30){
+    if (level > 30) {
       ellipse(0, 0, h / 2 - map(level, 30, 255, 0, h / 8), h / 2 - map(level, 30, 255, 0, h / 8))
-    }else{
-      ellipse(0, 0, h / 2 , h / 2 )
+    } else {
+      ellipse(0, 0, h / 2, h / 2)
     }
-    
-    
+
+
 
     // anchor decoration and text annoation 
     let radius_voice = level > 30 ? radius - map(level, 30, 255, 0, h / 8) : radius
@@ -541,7 +629,7 @@ function draw() {
     for (i = 0; i < 12; i++) {
       rect(radius_voice * cos(i * TWO_PI / 12), radius_voice * sin(i * TWO_PI / 12), 8)
     }
-   
+
     rect(radius * 1.12, 0, 20, 5)
     rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
     textSize(14)
@@ -553,8 +641,8 @@ function draw() {
     const start = level > 30 ? (radius - map(level, 30, 200, 1, 50)) : radius
     const end = level > 30 ? (radius - map(level, 30, 200, 1, 50)) * -1 : -radius
 
-    const r_1 = int( map(noise(previousLevel,previousAccumlate),0,1,0,colorLength))
-    const r_2 = int(map(noise(previousAccumlate,previousLevel),0,1,0,4))
+    const r_1 = int(map(noise(previousLevel, previousAccumlate), 0, 1, 0, colorLength))
+    const r_2 = int(map(noise(previousAccumlate, previousLevel), 0, 1, 0, 4))
 
     // main axis  
     push()
@@ -562,12 +650,12 @@ function draw() {
     drawingContext.shadowOffsetY = -2;
     drawingContext.shadowBlur = 20;
     drawingContext.shadowColor = '#eeeeee77';
-    if (level>0){
-      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100),colorSet[r_1][r_2])
-      main_lp_1.show(start, 0, end, 0, 10, 2,colorSet[r_1][(r_2+1)%4])
-    }else{
-      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100),"#F4F4F6")
-      main_lp_1.show(start, 0, end, 0, 10, 2,'#E6E6E9')
+    if (level > 0) {
+      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100), colorSet[r_1][r_2])
+      main_lp_1.show(start, 0, end, 0, 10, 2, colorSet[r_1][(r_2 + 1) % 4])
+    } else {
+      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100), "#F4F4F6")
+      main_lp_1.show(start, 0, end, 0, 10, 2, '#E6E6E9')
     }
 
     pop()
@@ -584,56 +672,58 @@ function draw() {
 
   }
 
-  // =============== color signal =================
-  push()
-  noStroke()
-  rectMode(CENTER)
-  fill(map(alphabet, 0, 26, 20, 180), 0, 0, map(alphabet, 0, 26, 20, 180))
-  rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, map(paintings, 0, 10, 20, 180), 0, map(paintings, 0, 10, 20, 180))
-  rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
-  fill(0, 0, map(voices, 0, 255, 20, 180), map(voices, 0, 255, 20, 180))
-  rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-  pop()
 
-  // =============== switch button =================
-  push()
-  rectMode(CENTER)
-  fill(50, 255)
-  noStroke()
-  rect(w * 0.05, h / 2, 10, 50, 20)
-  rect(w * 0.95, h / 2, 10, 50, 20)
-  pop()
 
-  // mouse effect
-  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
-    cursor(HAND)
-  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
-    push()
-    rectMode(CENTER)
-    fill(50, 255)
-    noStroke()
-    rect(w * 0.05, h / 2, 15, 50, 20)
-    pop()
-    cursor(HAND)
-  } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
-    push()
-    rectMode(CENTER)
-    fill(50, 255)
-    noStroke()
-    rect(w * 0.95, h / 2, 15, 50, 20)
-    pop()
-    cursor(HAND)
-  }
-  else {
-    cursor(ARROW)
-  }
+  // // =============== color signal =================
+  // push()
+  // noStroke()
+  // rectMode(CENTER)
+  // fill(map(alphabet, 0, 26, 20, 180), 0, 0, map(alphabet, 0, 26, 20, 180))
+  // rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
+  // fill(0, map(paintings, 0, 10, 20, 180), 0, map(paintings, 0, 10, 20, 180))
+  // rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
+  // fill(0, 0, map(voices, 0, 255, 20, 180), map(voices, 0, 255, 20, 180))
+  // rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
+  // pop()
+
+  // // =============== switch button =================
+  // push()
+  // rectMode(CENTER)
+  // fill(50, 255)
+  // noStroke()
+  // rect(w * 0.05, h / 2, 10, 50, 20)
+  // rect(w * 0.95, h / 2, 10, 50, 20)
+  // pop()
+
+  // // mouse effect
+  // if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
+  //   cursor(HAND)
+  // } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+  //   push()
+  //   rectMode(CENTER)
+  //   fill(50, 255)
+  //   noStroke()
+  //   rect(w * 0.05, h / 2, 15, 50, 20)
+  //   pop()
+  //   cursor(HAND)
+  // } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+  //   push()
+  //   rectMode(CENTER)
+  //   fill(50, 255)
+  //   noStroke()
+  //   rect(w * 0.95, h / 2, 15, 50, 20)
+  //   pop()
+  //   cursor(HAND)
+  // }
+  // else {
+  //   cursor(ARROW)
+  // }
 }
 
 function mouseClicked() {
   if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
     micIsActive = !micIsActive
-    
+
     // todo: play sound
     if (micIsActive) {
       if (!mic) {
@@ -681,6 +771,16 @@ function mouseClicked() {
     }
 
   }
+  if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && action === false) {
+    action = true
+    cursor(ARROW)
+    scene_0_start = frameCount
+ 
+    speech1.play()
+ 
+    keyboard.play()
+    
+  }
 
 
 }
@@ -714,14 +814,14 @@ function mouseReleased() {
       perlinParticles.push(new PerlinParticle(x, y))
     }
     cost = paintTracks.size
-   
+
     paintCanvas.clear()
     paintTracks.clear()
     perlinCanvas.clear()
     wealthRecord.clear()
-    scene_2_start=frameCount
-    canAdd=true
-  
+    scene_2_start = frameCount
+    canAdd = true
+
   }
 }
 // when you hit the spacebar, what's currently on the canvas will be saved (as
