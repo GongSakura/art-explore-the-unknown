@@ -8,14 +8,11 @@ let w = 0
 let h = 0
 let background_noise
 let radius
-let speech1
-let speech2
-let speech3
-let speech4
-let keyboard 
 
-// three scenes, 0,1,2,3,4
-let scene = 4
+let keyboard
+
+// five scenes, 0,1,2,3,4
+let scene = 0
 
 // grainy effect for background
 function setNoise(ctx) {
@@ -59,12 +56,33 @@ let fft
 
 let rollFilm_img
 let macroPolo_img
-let magellan_img
+let macroPoloMap_img
+let magellan_img2
+let magellan_img1
+let magellanMap_img
+let kite_img
+let franklin_img1
+let franklin_img2
+let franklin_img3
+let astronaut_img
+let moon_img
+let thunder_sound
+let story_sound
+let speech1
+let speech2
+let speech3
+let speech4
+let speech5
+let speech6
+let speechCount=0
+
+
 let action = false
 let scene_0_start = 0
+
 function typing() {
   // typing effect
-  if(!keyboard.isPlaying()){
+  if (!keyboard.isPlaying()) {
     keyboard.play()
   }
   push()
@@ -74,15 +92,135 @@ function typing() {
   textAlign(CENTER)
   fill(0)
   let str = 'Human Exploration.'
-  if(frameCount-scene_0_start<=90){
-    text(str.substring(0,(frameCount-scene_0_start)/5+1),0,0,400,50)
-  }else{
- 
-    text(str,0,0,400,50)
+  if (frameCount - scene_0_start <= 90) {
+    text(str.substring(0, (frameCount - scene_0_start) / 5 + 1), 0, 0, 400, 50)
+  } else {
+
+    text(str, 0, 0, 400, 50)
   }
   pop()
 }
+function marco() {
+  push()
+  switch (int((frameCount - scene_0_start - 120) / 30)) {
+    case 0:
+      translate(-h / 4, -h / 4)
+      break
+    case 1:
+      translate(-h / 5, -h / 8)
+      break
+    case 2:
+      translate(-h / 8, h / 20)
+      break
+    case 3:
+      translate(-h / 8, 0)
+      break
+    case 4:
+      translate(0, 0)
+      break
+    case 5:
+      translate(h / 8, 0)
+      break
+    default:
+      translate(h / 4, -h / 20)
+      break
+  }
+  image(macroPolo_img, cos(frameCount / 5) * 5, sin(frameCount / 5) * 5, h / 8, h / 8)
+  pop()
+}
+function magellan() {
+  push()
+  switch (int((frameCount - scene_0_start - 350) / 30)) {
+    case 0:
+      translate(-h / 8, -h / 8)
+      break
+    case 1:
+      translate(-h / 6, h / 4)
+      break
+    case 2:
+      translate(h / 3, 0)
+      break
+    case 3:
+      translate(h / 6, h / 8)
+      break
+    case 4:
+      translate(-h / 8, h / 8)
+      break
+    default:
+      translate(-h / 10, -h / 8)
+      break
+  }
+  if (int((frameCount - scene_0_start - 350) / 30) < 2) {
+    image(magellan_img2, cos(frameCount / 5) * 5, sin(frameCount / 5) * 5, h / 8, h / 8)
+  } else {
+    image(magellan_img1, cos(frameCount / 5) * 5, sin(frameCount / 5) * 5, h / 8, h / 8)
+  }
+  pop()
+}
+function franklin() {
+  push()
+  imageMode(CENTER)
+  image(kite_img, map(noise(frameCount / 50), 0, 1, -w / 4, w / 4), -h / 5, 150, 100)
+  if ((frameCount - scene_0_start - 560) < 240) {
+    if (frameCount % 30 > 15 && random(1) < 0.3) {
+      if (!thunder_sound.isPlaying()) {
+        thunder_sound.play()
+      }
+      push()
+      noFill()
+      stroke(20)
+      strokeWeight(1.5)
+      const start = createVector(map(noise(frameCount / 50), 0, 1, -w / 4, w / 4) + 30, -h / 5)
+      const end = createVector(0, h / 6)
+      beginShape()
+      for (let i = 0; i < 20; i++) {
+        let d = p5.Vector.lerp(start, end, i / 20)
+        vertex(5 * cos(d.y) + d.x, d.y)
+      }
+      endShape()
+      pop()
+      image(franklin_img2, cos(frameCount / 10) * 5, h / 6 + sin(frameCount / 10) * 5, 150, 150)
 
+    } else {
+      push()
+      noFill()
+      stroke(20)
+      strokeWeight(1.5)
+      line(map(noise(frameCount / 50), 0, 1, -w / 4, w / 4) + 30, -h / 5, 0, h / 6)
+      pop()
+      image(franklin_img1, cos(frameCount / 10) * 5, h / 6 + sin(frameCount / 10) * 5, 150, 150)
+    }
+
+  } else {
+    push()
+    noFill()
+    stroke(20)
+    strokeWeight(1.5)
+    line(map(noise(frameCount / 50), 0, 1, -w / 4, w / 4) + 30, -h / 5, 0, h / 6)
+    pop()
+    image(franklin_img3, cos(frameCount / 10) * 5, h / 6 + sin(frameCount / 10) * 5, 150, 150)
+  }
+  pop()
+}
+function armstrong(){
+push()
+  imageMode(CENTER)
+  if(frameCount-scene_0_start<=900){
+    const size = map(frameCount-scene_0_start,870,900,0,150)
+    image(moon_img,0,map(frameCount-scene_0_start,870,900,h/4,0),size,size)
+  }else if (frameCount-scene_0_start<=930){
+    image(moon_img,0,0,150,150)
+    const size = map(frameCount-scene_0_start,900,930,0,50)
+    image(astronaut_img,0,map(frameCount-scene_0_start,900,930,0,-105),size,1.3*size)
+  }else{
+    rotate((frameCount-scene_0_start-930)/50)
+    image(moon_img,0,0,150,150)
+    rotate((-frameCount+scene_0_start+930)/20)
+    image(astronaut_img,0,-105,50,65)
+    // const size = map(frameCount-scene_0_start,870,900,0,200)
+  }
+  pop()
+}
 // ============= scene one config =============
 
 // input
@@ -330,9 +468,6 @@ function CircleParticle(level) {
   }
 }
 
-
-
-
 // ============= scene four config =============
 let videoCapture
 let videoH = 0
@@ -344,8 +479,7 @@ let reflectionCanvas
 let renderCount = 0
 let renderTimes = 300
 
-
-function reflection(x, y,c, canvas) {
+function reflection(x, y, c, canvas) {
 
 
   canvas.push()
@@ -356,26 +490,41 @@ function reflection(x, y,c, canvas) {
   let r1 = random(words_len)
   let r2 = random(cost)
   let r3 = random(previousAccumlate)
-  canvas.curve(x,y,x+r1,y+sin(x+r1),x+r2,y+sin(x+r2),x+r3,y+sin(r3+x))
+  canvas.curve(x, y, x + r1, y + sin(x + r1), x + r2, y + sin(x + r2), x + r3, y + sin(r3 + x))
   canvas.pop()
 
 }
 
 
-// ==============================================
-
-
+// ================= main program ===================
 
 function preload() {
   // load any assets (images, sounds, etc.) here
-  bgm_1 = loadSound('assets/past-lives.mp3')
+
   rollFilm_img = loadImage('assets/rollfilm.png')
-  macroPolo_img = loadImage('assets/MarcoPolo.jpg')
+  macroPolo_img = loadImage('assets/MarcoPolo.png')
+  macroPoloMap_img = loadImage('assets/MarcoPoloMap.jpg')
+  magellanMap_img = loadImage('assets/FerdinandMagellanMap.jpg')
+  magellan_img1 = loadImage('assets/FerdinandMagellan.png')
+  magellan_img2 = loadImage('assets/FerdinandMagellan2.png')
+  kite_img = loadImage('assets/kite.png')
+  franklin_img3 = loadImage('assets/Franklin.png')
+  franklin_img1 = loadImage('assets/Franklin2.png')
+  franklin_img2 = loadImage('assets/Franklin3.png')
+  astronaut_img = loadImage('assets/astronaut.png')
+  moon_img = loadImage('assets/moon.png')
+
+  thunder_sound = loadSound('assets/thunder.mp3')
+  story_sound = loadSound('assets/story.mp3')
   speech1 = loadSound('assets/speech1.mp3')
   speech2 = loadSound('assets/speech2.mp3')
   speech3 = loadSound('assets/speech3.mp3')
   speech4 = loadSound('assets/speech4.mp3')
-  keyboard= loadSound('assets/keyboard.mp3')
+  speech5 = loadSound('assets/speech5.mp3')
+  speech6 = loadSound('assets/speech6.mp3')
+  keyboard = loadSound('assets/keyboard.mp3')
+
+  bgm_1 = loadSound('assets/past-lives.mp3')
 }
 
 function setup() {
@@ -384,7 +533,7 @@ function setup() {
   h = windowHeight
 
   radius = h / 4
- 
+
   push()
   textfield = createInput('')
   textfield.size(w * 0.2)
@@ -404,28 +553,19 @@ function setup() {
   videoMask.rectMode(CENTER)
 
   reflectionCanvas = createGraphics(h / 2, h / 2)
-  // reflectionCanvas.translate(h/4,h/4)
-  // reflectionCanvas.rectMode(CENTER)
 }
 
 function draw() {
   image(background_noise, 0, 0)
   frameRate(30)
-
   if (scene == 0) {
     // roll film
-
     if (!action) {
       translate(w / 2, h / 2)
       rectMode(CENTER)
       image(rollFilm_img, -80, -20 + sin(frameCount / 8) * 10, 180, 150)
-      if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120) {
-        cursor(HAND)
-      } else {
-        cursor(ARROW)
-      }
     } else {
-    
+      // action !!!!
       push()
       fill(50)
       rect(w / 2, h * 0.15, w, 50)
@@ -439,25 +579,59 @@ function draw() {
         rect((i * intervel + frameCount * 2) % w, h * 0.85, 30, 30, 4)
       }
       pop()
-    
-      if (frameCount - scene_0_start <= 100) {
+      // opening 
+      if (frameCount - scene_0_start <= 120) {
         typing()
-      }else if (frameCount - scene_0_start <= 15000) {
-        if(keyboard.isPlaying()){
+      }
+      // macro polo
+      else if (frameCount - scene_0_start <= 350) {
+        if (keyboard.isPlaying()) {
           keyboard.stop()
         }
-        push()
-        translate(-h/2,h/2)
-        let interval = w/4
-        for(let i =0;i<4; i++){
-          image(macroPolo_img,(i*interval+frameCount*5)%(w+h*0.5),-h*0.25,h*0.5,h*0.5)
-          console.log(i*interval+h*0.5);
+        if(!speech2.isPlaying() && speechCount==1){
+          speech2.play()
+          speechCount++
         }
-       
-       
+        push()
+        translate(w / 2, h / 2)
+        imageMode(CENTER)
+        image(macroPoloMap_img, 0, 0, h / 2, h / 2)
+        marco()
         pop()
+      } else if (frameCount - scene_0_start <= 560) {
+        if(!speech3.isPlaying() && speechCount==2){
+          speech3.play()
+          speechCount++
+        }
+        push()
+        translate(w / 2, h / 2)
+        imageMode(CENTER)
+        image(magellanMap_img, 0, 0, h / 1.5, h / 2)
+        magellan()
+        pop()
+      } else if (frameCount - scene_0_start <= 870) {
+        if(!speech4.isPlaying() && speechCount==3){
+          speech4.play()
+          speechCount++
+        }
+        push()
+        translate(w / 2, h / 2)
+        franklin()
+        pop()
+      } else if (frameCount - scene_0_start <= 1140) {
+        if(!speech5.isPlaying() && speechCount==4){
+          speechCount++
+          speech5.play()
+        }
+        translate(w / 2, h / 2)
+        armstrong()
+        
+      }else{
+        if(!speech6.isPlaying() && speechCount==5){
+          speechCount++
+          speech6.play()
+        }
       }
-
     }
   }
 
@@ -541,7 +715,7 @@ function draw() {
     videoCapture.hide()
     image(paintCanvas, 0, 0)
     if (mouseIsPressed) {
-      paintTracks.add(int(mouseX)+'-'+int(mouseY))
+      paintTracks.add(int(mouseX) + '-' + int(mouseY))
     }
 
     push()
@@ -579,8 +753,8 @@ function draw() {
 
     push()
     for (const pos of paintTracks) {
-      const x_y= pos.split('-')
-     drawTrack(int(x_y[0]), int(x_y[1]))
+      const x_y = pos.split('-')
+      drawTrack(int(x_y[0]), int(x_y[1]))
     }
     pop()
 
@@ -602,9 +776,9 @@ function draw() {
     videoCapture.hide()
     const level = mic?.getLevel() ? int(mic.getLevel()) : 0
     if (level >= 80) {
-      accumlate_high = (accumlate_high + 4) %84
+      accumlate_high = (accumlate_high + 4) % 84
     } else if (level >= 20) {
-      accumlate_low = (accumlate_low + 2) %32
+      accumlate_low = (accumlate_low + 2) % 32
     }
     const accumlate = level >= 80 ? accumlate_high : accumlate_low
 
@@ -737,17 +911,18 @@ function draw() {
       img = videoCapture.get(videoW / 4, videoH / 4, videoW, videoH)
       img.mask(videoMask)
       image(img, 0, 0, videoW, videoH)
-      if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.75 && mouseY >= h * 0.75 - 30 && scene === 4) {
+      if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4) {
         fill(100)
       } else {
         fill(0)
       }
-      rect(0, h * 0.25 - 17, 200, 30, 8, 8, 8, 8)
+      rect(0, h * 0.3 - 18, 200, 30, 8, 8, 8, 8)
       textAlign(CENTER)
-      textSize(18)
+      textSize(16)
       fill(255)
-      text('REFLECTION', 0, h * 0.25, 200, 50)
-
+      text('REFLECTION', 0, h * 0.3, 200, 50)
+      fill(0)
+      text('Mirror, mirror tell me what I will look like', 0, h * 0.25, 400, 50)
       pop()
     } else {
       push()
@@ -756,14 +931,7 @@ function draw() {
       rectMode(CENTER)
       imageMode(CENTER)
       if (renderCount < renderTimes) {
-        // set up mask
-        videoMask.clear()
-        videoMask.push()
-        videoMask.fill(0)
-        videoMask.noStroke()
-        videoMask.ellipse(0, 0, h / 3, h / 2)
-        videoMask.pop()
-        img.mask(videoMask)
+
         reflectionCanvas.noStroke()
         for (let i = 0; i < 100; i++) {
           let x = random(videoW)
@@ -772,14 +940,20 @@ function draw() {
           if (c[0] < 1) {
             continue
           }
-          reflection(x, y, c[0]*0.3+c[1]*0.6+c[2]*0.1, reflectionCanvas)
-       
+          reflection(x, y, c[0] * 0.3 + c[1] * 0.6 + c[2] * 0.1, reflectionCanvas)
+
         }
         renderCount++
         image(reflectionCanvas, 0, h * 0.1, h / 2, h / 2)
       } else {
         image(reflectionCanvas, 0, h * 0.1, h / 2, h / 2)
       }
+      push()
+      textSize(16)
+      fill(0)
+      textAlign(CENTER)
+      text('Do you satisfy the outcome generated by yourself? If not, do you regret that you did not explore more on some aspects as they were boring, hard or uncertainty? \nRemember all beauty is reserved for persistent, brave people ', 20, h * 0.3, 450, 100)
+      pop()
 
       pop()
     }
@@ -789,17 +963,19 @@ function draw() {
 
   // if (scene !== 4 && scene !== 0) {
   if (scene !== 0) {
-    // =============== color signal =================
-    push()
-    noStroke()
-    rectMode(CENTER)
-    fill(map(alphabet, 0, 26, 20, 180), 0, 0, map(alphabet, 0, 26, 20, 180))
-    rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-    fill(0, map(paintings, 0, 10, 20, 180), 0, map(paintings, 0, 10, 20, 180))
-    rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
-    fill(0, 0, map(voices, 0, 255, 20, 180), map(voices, 0, 255, 20, 180))
-    rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-    pop()
+    if (scene !== 4) {
+      // =============== color signal =================
+      push()
+      noStroke()
+      rectMode(CENTER)
+      fill(map(alphabet, 0, 26, 20, 180), 0, 0, map(alphabet, 0, 26, 20, 180))
+      rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
+      fill(0, map(paintings, 0, 10, 20, 180), 0, map(paintings, 0, 10, 20, 180))
+      rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
+      fill(0, 0, map(voices, 0, 255, 20, 180), map(voices, 0, 255, 20, 180))
+      rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
+      pop()
+    }
 
     // =============== switch button =================
     push()
@@ -812,10 +988,10 @@ function draw() {
   }
 
 
-  // mouse effect
+  // mouse hover 
   if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
     cursor(HAND)
-  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && scene !== 0) {
     push()
     rectMode(CENTER)
     fill(50, 255)
@@ -823,7 +999,7 @@ function draw() {
     rect(w * 0.05, h / 2, 15, 50, 20)
     pop()
     cursor(HAND)
-  } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+  } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && scene !== 0) {
     push()
     rectMode(CENTER)
     fill(50, 255)
@@ -831,11 +1007,12 @@ function draw() {
     rect(w * 0.95, h / 2, 15, 50, 20)
     pop()
     cursor(HAND)
-    
-  }
-  else if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.75 && mouseY >= h * 0.75 - 30 && scene === 4 && !hasReflection) {
-    cursor(HAND)
 
+  }
+  else if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4 && !hasReflection) {
+    cursor(HAND)
+  } else if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && !action) {
+    cursor(HAND)
   }
   else {
     cursor(ARROW)
@@ -900,27 +1077,25 @@ function mouseClicked() {
   }
   if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && action === false) {
     action = true
-    cursor(ARROW)
+
     scene_0_start = frameCount
- 
     speech1.play()
- 
     keyboard.play()
-    
-  if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.75 && mouseY >= h * 0.75 - 30 && scene === 4) {
+    story_sound.play()
+    speechCount++
+  }
+  if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4) {
     hasReflection = true
     img = videoCapture.get(videoW / 4, videoH / 4, videoW, videoH)
   }
 
-
 }
-
 function mouseReleased() {
-  if (scene == 2 && 
-    !(mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && 
-      mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) && 
-      !(mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && 
-        mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30)) {
+  if (scene == 2 &&
+    !(mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 &&
+      mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) &&
+    !(mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 &&
+      mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30)) {
     // remove all perlin particles
     perlinParticles = []
     // for (let i = perlinParticles.length - 1; i >= 0; i++) {
@@ -939,7 +1114,7 @@ function mouseReleased() {
       sum_x += x
       sum_y += y
       largest_x = x > largest_x ? x : largest_x
-      largest_y = y> largest_y ? y : largest_y
+      largest_y = y > largest_y ? y : largest_y
       smallest_x = x < smallest_x ? x : smallest_x
       smallest_y = y < smallest_y ? y : smallest_y
     }
@@ -959,9 +1134,10 @@ function mouseReleased() {
     wealthRecord.clear()
     scene_2_start = frameCount
     canAdd = true
-
   }
 }
+
+
 // when you hit the spacebar, what's currently on the canvas will be saved (as
 // a "thumbnail.png" file) to your downloads folder. this is a good starting
 // point for the final thumbnail of your project (this allows us to make a

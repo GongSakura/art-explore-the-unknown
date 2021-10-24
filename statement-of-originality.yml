@@ -7,20 +7,48 @@ declaration: >-
 
 
 
-# add as many "url+licence+comment" entries as necessary
-# (or remove it altogether if you haven't used any external code)
-code:
-  - comment: keyboadsound
-    url: https://freesound.org/data/previews/537/537244_1920058-lq.mp3
-    licence:
 
 # add as many "url+licence+comment" entries as necessary
 # (or remove it altogether if you haven't used any external assets)
 assets:
-  - comment:
-    url:
+  - comment: background music
+    url: https://pixabay.com/music/search/documentary/
+    licence:  
+
+  - comment: keyboadsound
+    url: https://freesound.org/data/previews/537/537244_1920058-lq.mp3
+    licence:
+  
+  - comment: marcopolo map
+    url: https://images.app.goo.gl/sFkr7jXzvFDHpRfh7
+    licence:
+   
+  - comment: funny Ferdinand Magellan 
+    url:  https://images.app.goo.gl/dKRJECZPjPn4igZ9A
+    licence:
+  
+  - comment: normal Ferdinand Magellan 
+    url:   https://images.app.goo.gl/ZtKT32tzjUAoHSQg7
     licence:
 
+  - comment: thunder sound
+    url:  https://freesound.org/people/Josh74000MC/sounds/475177/
+    licence: the Creative Commons 0 License.
+  
+  - comment: the moon
+    url:  https://images.app.goo.gl/1egwKFjKcarceCru7
+    licence: the public License.
+
+  - comment: neil armstrong
+    url:  https://images.app.goo.gl/QFeDXtT5eZ34Bbpj8
+    licence: the public License.
+
+  
+  # https://images.app.goo.gl/HK4YxqMMjEm98aZj6
+  # https://images.app.goo.gl/cVYMw8mULGT4MJaN8s
+  # https://images.app.goo.gl/375fBp4ucRorTGrM7
+  # https://images.app.goo.gl/T1Vy9n4nskUxQUH3A
+  # 
 # sign *your* name and uid here
 name:
 uid:
