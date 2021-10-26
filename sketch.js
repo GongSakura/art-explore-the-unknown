@@ -74,9 +74,11 @@ let speech3
 let speech4
 let speech5
 let speech6
-let speechCount=0
-
-
+let speechCount = 0
+let tempCanvas
+let unknowns = ["未知", "알려지지 않은", "わからない", "unknown", "わからない",]
+let bubbles =[]
+let bubble_pop
 let action = false
 let scene_0_start = 0
 
@@ -202,25 +204,80 @@ function franklin() {
   }
   pop()
 }
-function armstrong(){
-push()
+function armstrong() {
+  push()
   imageMode(CENTER)
-  if(frameCount-scene_0_start<=900){
-    const size = map(frameCount-scene_0_start,870,900,0,150)
-    image(moon_img,0,map(frameCount-scene_0_start,870,900,h/4,0),size,size)
-  }else if (frameCount-scene_0_start<=930){
-    image(moon_img,0,0,150,150)
-    const size = map(frameCount-scene_0_start,900,930,0,50)
-    image(astronaut_img,0,map(frameCount-scene_0_start,900,930,0,-105),size,1.3*size)
-  }else{
-    rotate((frameCount-scene_0_start-930)/50)
-    image(moon_img,0,0,150,150)
-    rotate((-frameCount+scene_0_start+930)/20)
-    image(astronaut_img,0,-105,50,65)
+  if (frameCount - scene_0_start <= 900) {
+    const size = map(frameCount - scene_0_start, 870, 900, 0, 150)
+    image(moon_img, 0, map(frameCount - scene_0_start, 870, 900, h / 4, 0), size, size)
+  } else if (frameCount - scene_0_start <= 930) {
+    image(moon_img, 0, 0, 150, 150)
+    const size = map(frameCount - scene_0_start, 900, 930, 0, 50)
+    image(astronaut_img, 0, map(frameCount - scene_0_start, 900, 930, 0, -105), size, 1.3 * size)
+  } else {
+    rotate((frameCount - scene_0_start - 930) / 50)
+    image(moon_img, 0, 0, 150, 150)
+    rotate((-frameCount + scene_0_start + 930) / 20)
+    image(astronaut_img, 0, -105, 50, 65)
     // const size = map(frameCount-scene_0_start,870,900,0,200)
   }
   pop()
 }
+
+function RandomBubble(x, y) {
+  this.pos = createVector(x, y)
+  this.size = random(5, 10)
+  this.vel = createVector(0, -random(5))
+  this.opacity = 255
+  this.hasBloomed = false
+  this.r1 =  random(8,10)
+  this.r2 =  random(12,15)
+  this.a = TWO_PI / 5
+  this.ha = this.a / 2
+  this.update = () => {
+    this.opacity -= 2
+    if (!this.hasBloomed) {
+      this.size += 0.5
+      this.vel = createVector(map(noise(this.pos.x,this.pos.y),0,1,-5,5),this.vel.y)
+    }else{
+      this.vel = createVector(map(noise(this.pos.x,this.pos.y),0,1,-5,5),this.vel.y/2)
+    }
+    if (this.size > 30 && !this.hasBloomed) {
+      this.hasBloomed = true
+      bubble_pop.play()
+  
+    }
+   
+ 
+    this.pos.add(this.vel)
+  }
+  this.show = () => {
+
+    push()
+    noStroke()
+    if (this.hasBloomed) {
+      fill(20,this.opacity)
+      beginShape();
+      for (let i = 0; i < TWO_PI; i += this.a) {
+        let sx = this.pos.x + cos(i) * this.r2;
+        let sy = this.pos.y + sin(i) * this.r2;
+        vertex(sx, sy);
+        sx = this.pos.x + cos(i + this.ha) * this.r1;
+        sy = this.pos.y + sin(i + this.ha) * this.r1;
+        vertex(sx, sy);
+      }
+      endShape(CLOSE);
+    } else {
+      
+      fill(10,this.opacity)
+      ellipse(this.pos.x, this.pos.y, this.size, this.size)
+    }
+    pop()
+    this.update()
+  }
+
+}
+
 // ============= scene one config =============
 
 // input
@@ -523,7 +580,7 @@ function preload() {
   speech5 = loadSound('assets/speech5.mp3')
   speech6 = loadSound('assets/speech6.mp3')
   keyboard = loadSound('assets/keyboard.mp3')
-
+  bubble_pop = loadSound('assets/bubble_pop.mp3')
   bgm_1 = loadSound('assets/past-lives.mp3')
 }
 
@@ -553,8 +610,18 @@ function setup() {
   videoMask.rectMode(CENTER)
 
   reflectionCanvas = createGraphics(h / 2, h / 2)
+  tempCanvas = createGraphics(w, h / 2)
 }
 
+function draw2(){
+  background(255)
+  if(random(1)<0.05){
+    bubbles.push(new RandomBubble(random(w),h))
+  }
+  for(const b of bubbles){
+    b.show()
+  }
+}
 function draw() {
   image(background_noise, 0, 0)
   frameRate(30)
@@ -588,7 +655,7 @@ function draw() {
         if (keyboard.isPlaying()) {
           keyboard.stop()
         }
-        if(!speech2.isPlaying() && speechCount==1){
+        if (!speech2.isPlaying() && speechCount == 1) {
           speech2.play()
           speechCount++
         }
@@ -599,7 +666,7 @@ function draw() {
         marco()
         pop()
       } else if (frameCount - scene_0_start <= 560) {
-        if(!speech3.isPlaying() && speechCount==2){
+        if (!speech3.isPlaying() && speechCount == 2) {
           speech3.play()
           speechCount++
         }
@@ -610,7 +677,7 @@ function draw() {
         magellan()
         pop()
       } else if (frameCount - scene_0_start <= 870) {
-        if(!speech4.isPlaying() && speechCount==3){
+        if (!speech4.isPlaying() && speechCount == 3) {
           speech4.play()
           speechCount++
         }
@@ -619,20 +686,53 @@ function draw() {
         franklin()
         pop()
       } else if (frameCount - scene_0_start <= 1140) {
-        if(!speech5.isPlaying() && speechCount==4){
+        if (!speech5.isPlaying() && speechCount == 4) {
           speechCount++
           speech5.play()
         }
         translate(w / 2, h / 2)
         armstrong()
-        
-      }else{
-        if(!speech6.isPlaying() && speechCount==5){
+
+      } else if (frameCount-scene_0_start<=1560){
+        if (!speech6.isPlaying() && speechCount == 5) {
           speechCount++
           speech6.play()
         }
+        if (frameCount - scene_0_start <= 1230) {
+          push()
+          imageMode(CENTER)
+          tempCanvas.push()
+          tempCanvas.translate(w / 2, 0)
+          tempCanvas.textAlign(CENTER)
+          tempCanvas.textSize(random(50))
+          tempCanvas.textStyle(BOLD)
+          tempCanvas.fill(0, 100)
+          tempCanvas.rotate(random(PI))
+          tempCanvas.text(random(unknowns), random(-h / 2, h / 2), random(h / 2), 100, 50)
+          tempCanvas.pop()
+          image(tempCanvas, w / 2, h / 2, w, h / 2)
+          pop()
+        }else if (frameCount-scene_0_start<=1350){
+          // for(let o=0;o<10;o++){
+
+            bubbles.push(new RandomBubble(random(w*0.1,w*0.9),random(h*0.3,h*0.75)))
+          // }
+          for(const b of bubbles){
+            b.show()
+          }
+        }else {
+          push()
+          fill(20)
+          textAlign(CENTER)
+          textStyle(BOLD)
+          textSize(map((frameCount-scene_0_start)%30,0,7,35,50))
+          text("?", w/2, h/2, 50, 50)
+          pop()
+        }
       }
     }
+
+
   }
 
   // ========================== scene one ==============================
