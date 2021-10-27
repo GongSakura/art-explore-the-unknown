@@ -8,12 +8,11 @@ let w = 0
 let h = 0
 let background_noise
 let radius
-
-let keyboard
-
+let hideSingal = true
 // five scenes, 0,1,2,3,4
-let scene = 0
+let scene = 4
 
+let sinParticles = []
 // grainy effect for background
 function setNoise(ctx) {
   ctx.background(230, 227, 225);
@@ -48,12 +47,43 @@ let red_colors_gained = [...red_colors]
 let blue_colors_gained = [...blue_colors]
 let green_colors_gained = [...green_colors]
 
-// bgm
-let bgm_1
-let fft
+function SinParticle(x, y, type) {
+  this.o = createVector(x, y)
+  this.r = random(5, 50)
+  this.a = 0
+  this.c = random(50, 100)
+  this.opacity = 200
+  this.s = random(5, 20)
+  this.d = random(1) <= 0.5 ? -1 : 1
+  this.update = () => {
+    this.a += TWO_PI / 30 * this.d
+    this.opacity = this.opacity < 0 ? 200 : this.opacity - 5
+  }
+  this.show = () => {
+    push()
+    noStroke()
+    switch (type) {
+      case 1:
+        fill(this.c, 0, 0, this.opacity)
+        break
+      case 2:
+        fill(0, this.c, 0, this.opacity)
+        break
+      case 3:
+        fill(0, 0, this.c, this.opacity)
+        break
+
+    }
+
+    ellipse(this.o.x + cos(this.a) * this.r, this.o.y + sin(this.a) * this.r, this.s, this.s)
+    pop()
+    this.update()
+  }
+}
+
 
 // ============= scene zero config ============
-
+let keyboard
 let rollFilm_img
 let macroPolo_img
 let macroPoloMap_img
@@ -68,25 +98,30 @@ let astronaut_img
 let moon_img
 let thunder_sound
 let story_sound
+let horse_sound
+let ship_sound
+let space_sound
 let speech1
 let speech2
 let speech3
 let speech4
 let speech5
 let speech6
+let speech7
+let speech8
 let speechCount = 0
 let tempCanvas
 let unknowns = ["未知", "알려지지 않은", "わからない", "unknown", "わからない",]
-let bubbles =[]
+let bubbles = []
 let bubble_pop
 let action = false
+let startStory = false
 let scene_0_start = 0
+let startGame = false
+let endIntro = false
 
 function typing() {
   // typing effect
-  if (!keyboard.isPlaying()) {
-    keyboard.play()
-  }
   push()
   translate(w / 2, h / 2)
   textSize(36)
@@ -95,6 +130,9 @@ function typing() {
   fill(0)
   let str = 'Human Exploration.'
   if (frameCount - scene_0_start <= 90) {
+    if (!keyboard.isPlaying()) {
+      keyboard.play()
+    }
     text(str.substring(0, (frameCount - scene_0_start) / 5 + 1), 0, 0, 400, 50)
   } else {
 
@@ -104,6 +142,9 @@ function typing() {
 }
 function marco() {
   push()
+  if (frameCount - scene_0_start < 300 && !horse_sound.isPlaying()) {
+    horse_sound.play()
+  }
   switch (int((frameCount - scene_0_start - 120) / 30)) {
     case 0:
       translate(-h / 4, -h / 4)
@@ -132,6 +173,9 @@ function marco() {
 }
 function magellan() {
   push()
+  if (frameCount - scene_0_start < 550 && !ship_sound.isPlaying()) {
+    ship_sound.play()
+  }
   switch (int((frameCount - scene_0_start - 350) / 30)) {
     case 0:
       translate(-h / 8, -h / 8)
@@ -223,32 +267,31 @@ function armstrong() {
   }
   pop()
 }
-
 function RandomBubble(x, y) {
   this.pos = createVector(x, y)
   this.size = random(5, 10)
   this.vel = createVector(0, -random(5))
   this.opacity = 255
   this.hasBloomed = false
-  this.r1 =  random(8,10)
-  this.r2 =  random(12,15)
+  this.r1 = random(8, 10)
+  this.r2 = random(12, 15)
   this.a = TWO_PI / 5
   this.ha = this.a / 2
   this.update = () => {
     this.opacity -= 2
     if (!this.hasBloomed) {
       this.size += 0.5
-      this.vel = createVector(map(noise(this.pos.x,this.pos.y),0,1,-5,5),this.vel.y)
-    }else{
-      this.vel = createVector(map(noise(this.pos.x,this.pos.y),0,1,-5,5),this.vel.y/2)
+      this.vel = createVector(map(noise(this.pos.x, this.pos.y), 0, 1, -5, 5), this.vel.y)
+    } else {
+      this.vel = createVector(map(noise(this.pos.x, this.pos.y), 0, 1, -5, 5), this.vel.y / 2)
     }
     if (this.size > 30 && !this.hasBloomed) {
       this.hasBloomed = true
       bubble_pop.play()
-  
+
     }
-   
- 
+
+
     this.pos.add(this.vel)
   }
   this.show = () => {
@@ -256,7 +299,7 @@ function RandomBubble(x, y) {
     push()
     noStroke()
     if (this.hasBloomed) {
-      fill(20,this.opacity)
+      fill(20, this.opacity)
       beginShape();
       for (let i = 0; i < TWO_PI; i += this.a) {
         let sx = this.pos.x + cos(i) * this.r2;
@@ -268,8 +311,8 @@ function RandomBubble(x, y) {
       }
       endShape(CLOSE);
     } else {
-      
-      fill(10,this.opacity)
+
+      fill(10, this.opacity)
       ellipse(this.pos.x, this.pos.y, this.size, this.size)
     }
     pop()
@@ -282,11 +325,22 @@ function RandomBubble(x, y) {
 
 // input
 let textfield
-
+let scene_1_start = 0
+let speech9
+let bgm_1
 // ** to record the first letter of each input **
 // if player can enter up to 26, then it will gained all the red colors
 let alphabet = 0
-
+let responses = ['Honey, say something.',
+  'I can’t wait to spend the rest of our lives together',
+  'Did you know that you make the world a better place?',
+  'You made my heart sing with those words!',
+  'I’m not a hoarder, but I want to keep you forever.',
+  'Can you say that again? I want to relive the feeling!',
+  'I can’t believe how hopelessly I’ve fallen for you.',
+  'I would do anything and everything for you as long as we’re together',
+  'I love you a little more than I did a minute ago!']
+let responseNumber = 0
 let words = []
 let textParticles = []
 let words_len = 1
@@ -355,8 +409,6 @@ function TextParticle(str, x, y) {
     this.update()
   }
 }
-
-
 function inputText() {
 
   textParticles = []
@@ -379,10 +431,30 @@ function inputText() {
 
   mouseX = random(1) < 0.5 ? random(w * 0.8, w) : random(w * 0.2)
   mouseY = random(h * 0.8, h)
+  responseNumber = int(random(responses.length))
+  if (!bgm_1.isPlaying()) {
+    bgm_1.play()
+  }
+}
 
-  // if (!bgm_1.isPlaying()) {
-  //   bgm_1.play()
-  // }
+function typing2() {
+
+  push()
+  // translate(w / 2, h / 2)
+  textSize(36)
+  textStyle(BOLD)
+  textAlign(CENTER)
+  fill(23, 50, 50)
+  let str = 'Chapter 1 - Love'
+  if (frameCount - scene_1_start <= 60) {
+    if (!keyboard.isPlaying()) {
+      keyboard.play()
+    }
+    text(str.substring(0, int(map(frameCount - scene_1_start, 0, 60, 1, 16))), w / 2 - 200, h / 2 - 18, 400, 36)
+  } else {
+    text(str, w / 2 - 200, h / 2 - 18, 400, 36)
+  }
+  pop()
 }
 
 // ============= scene two config =============
@@ -396,11 +468,16 @@ let paintTracks = new Set()
 let previousDist = 0
 let perlinParticles = []
 let scene_2_start = 0
+let wealth_start = 0
 let cost = 0
 let wealth = 0
 let wealthRecord = new Set()
 let canAdd = false
 let gainRatio = 0
+let gainSound
+let drawSound
+let speech10
+let tip = "Someone can always cost the least to gain the greatest."
 
 function PerlinParticle(x, y) {
   this.pos = createVector(x, y)
@@ -416,6 +493,9 @@ function PerlinParticle(x, y) {
   }
   this.hasDone = false
   this.show = (c) => {
+    if (random(1) < 0.005) {
+      gainSound.play()
+    }
     wealthRecord.add(int(this.pos.x))
     // check edge
     if (dist(this.pos.x, this.pos.y, 0, 0) > h / 4.2) {
@@ -449,6 +529,26 @@ function drawTrack(x, y) {
   }
   pop()
 }
+
+function typing3() {
+
+  push()
+  // translate(w / 2, h / 2)
+  textSize(36)
+  textStyle(BOLD)
+  textAlign(CENTER)
+  fill(23, 50, 50)
+  let str = 'Chapter 2 - Wealth'
+  if (frameCount - scene_2_start <= 60) {
+    if (!keyboard.isPlaying()) {
+      keyboard.play()
+    }
+    text(str.substring(0, int(map(frameCount - scene_2_start, 0, 60, 1, 19))), w / 2 - 200, h / 2 - 18, 400, 36)
+  } else {
+    text(str, w / 2 - 200, h / 2 - 18, 400, 36)
+  }
+  pop()
+}
 // ============= scene three config =============
 // ** to record the volumn of different speaking **
 // if player's voice volumn can reach all levels, then it will gained all the blue colors
@@ -462,6 +562,7 @@ let currentLevel = 0
 let accumlate_low = 1
 let accumlate_high = 1
 let micIsActive = false
+let scene_3_start=0
 let voiceRecord = new Map()
 let circleParticles = []
 let main_lp_2 = new LinkParticle("#F4F4F6", 4)
@@ -524,7 +625,23 @@ function CircleParticle(level) {
     pop()
   }
 }
-
+function typing4() {
+  push()
+  textSize(36)
+  textStyle(BOLD)
+  textAlign(CENTER)
+  fill(23, 50, 50)
+  let str = 'Chapter 3 - Power'
+  if (frameCount - scene_3_start <= 60) {
+    if (!keyboard.isPlaying()) {
+      keyboard.play()
+    }
+    text(str.substring(0, int(map(frameCount - scene_3_start, 0, 60, 1, 18))), w / 2 - 200, h / 2 - 18, 400, 36)
+  } else {
+    text(str, w / 2 - 200, h / 2 - 18, 400, 36)
+  }
+  pop()
+}
 // ============= scene four config =============
 let videoCapture
 let videoH = 0
@@ -557,7 +674,6 @@ function reflection(x, y, c, canvas) {
 
 function preload() {
   // load any assets (images, sounds, etc.) here
-
   rollFilm_img = loadImage('assets/rollfilm.png')
   macroPolo_img = loadImage('assets/MarcoPolo.png')
   macroPoloMap_img = loadImage('assets/MarcoPoloMap.jpg')
@@ -570,18 +686,27 @@ function preload() {
   franklin_img2 = loadImage('assets/Franklin3.png')
   astronaut_img = loadImage('assets/astronaut.png')
   moon_img = loadImage('assets/moon.png')
-
   thunder_sound = loadSound('assets/thunder.mp3')
   story_sound = loadSound('assets/story.mp3')
+  ship_sound = loadSound('assets/ship.mp3')
   speech1 = loadSound('assets/speech1.mp3')
   speech2 = loadSound('assets/speech2.mp3')
   speech3 = loadSound('assets/speech3.mp3')
   speech4 = loadSound('assets/speech4.mp3')
   speech5 = loadSound('assets/speech5.mp3')
   speech6 = loadSound('assets/speech6.mp3')
+  speech7 = loadSound('assets/speech7.mp3')
+  speech8 = loadSound('assets/speech8.mp3')
+  speech9 = loadSound('assets/speech9.mp3')
+  speech10 = loadSound('assets/speech10.mp3')
+  speech11 = loadSound('assets/speech11.mp3')
+  horse_sound = loadSound('assets/horse.mp3')
   keyboard = loadSound('assets/keyboard.mp3')
   bubble_pop = loadSound('assets/bubble_pop.mp3')
+  gainSound = loadSound('assets/gain.mp3')
+  drawSound = loadSound('assets/draw.mp3')
   bgm_1 = loadSound('assets/past-lives.mp3')
+  startGame = loadSound('assets/start.mp3')
 }
 
 function setup() {
@@ -610,26 +735,21 @@ function setup() {
   videoMask.rectMode(CENTER)
 
   reflectionCanvas = createGraphics(h / 2, h / 2)
-  tempCanvas = createGraphics(w, h / 2)
+  tempCanvas = createGraphics(w, h * 0.7)
 }
 
-function draw2(){
-  background(255)
-  if(random(1)<0.05){
-    bubbles.push(new RandomBubble(random(w),h))
-  }
-  for(const b of bubbles){
-    b.show()
-  }
-}
+
 function draw() {
   image(background_noise, 0, 0)
   frameRate(30)
-  if (scene == 0) {
+  // ========================== scene zero ==============================
+  if (scene == 0 && !startStory) {
+    push()
+    rectMode(CENTER)
     // roll film
     if (!action) {
       translate(w / 2, h / 2)
-      rectMode(CENTER)
+
       image(rollFilm_img, -80, -20 + sin(frameCount / 8) * 10, 180, 150)
     } else {
       // action !!!!
@@ -640,7 +760,6 @@ function draw() {
       pop()
       const intervel = w / 24
       push()
-      rectMode(CENTER)
       for (let i = 0; i < 24; i++) {
         rect((i * intervel + frameCount * 2) % w, h * 0.15, 30, 30, 4)
         rect((i * intervel + frameCount * 2) % w, h * 0.85, 30, 30, 4)
@@ -693,10 +812,14 @@ function draw() {
         translate(w / 2, h / 2)
         armstrong()
 
-      } else if (frameCount-scene_0_start<=1560){
+      } else if (frameCount - scene_0_start <= 1560) {
         if (!speech6.isPlaying() && speechCount == 5) {
           speechCount++
           speech6.play()
+        }
+        if (!speech6.isPlaying() && !speech7.isPlaying() && speechCount == 6) {
+          speech7.play()
+          speechCount++
         }
         if (frameCount - scene_0_start <= 1230) {
           push()
@@ -707,284 +830,380 @@ function draw() {
           tempCanvas.textSize(random(50))
           tempCanvas.textStyle(BOLD)
           tempCanvas.fill(0, 100)
-          tempCanvas.rotate(random(PI))
-          tempCanvas.text(random(unknowns), random(-h / 2, h / 2), random(h / 2), 100, 50)
+          tempCanvas.rotate(random(-PI * 0.2, PI * 0.2))
+          tempCanvas.text(random(unknowns), random(-h / 2, h / 2), random(h * 0.7), 100, 50)
           tempCanvas.pop()
-          image(tempCanvas, w / 2, h / 2, w, h / 2)
+          image(tempCanvas, w / 2, h / 2, w, h * 0.7)
           pop()
-        }else if (frameCount-scene_0_start<=1350){
-          // for(let o=0;o<10;o++){
-
-            bubbles.push(new RandomBubble(random(w*0.1,w*0.9),random(h*0.3,h*0.75)))
-          // }
-          for(const b of bubbles){
+        } else if (frameCount - scene_0_start <= 1350) {
+          if (random(1) < 0.5) {
+            bubbles.push(new RandomBubble(random(w * 0.1, w * 0.9), random(h * 0.3, h * 0.75)))
+          }
+          for (const b of bubbles) {
             b.show()
           }
-        }else {
+        } else {
           push()
+          rectMode(CENTER)
           fill(20)
+          const choice = int((frameCount - scene_0_start - 1350) / 30)
+          if (choice % 3 == 0) {
+            ellipse(w / 2, h / 2, map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 200))
+          } else if (choice % 3 == 1) {
+            rect(w / 2, h / 2, map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 200), map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 200))
+          } else {
+            triangle(w / 2, h / 2 - map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 100), w / 2 - map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 100), h / 2 + map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 100),
+              w / 2 + map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 100), h / 2 + map((frameCount - scene_0_start - 1350) % 30, 0, 30, 50, 100))
+          }
+          pop()
+
+        }
+      }
+      else {
+        if (!speech8.isPlaying() && speechCount == 7) {
+          speechCount++
+          speech8.play()
+        }
+        push()
+        if (frameCount - scene_0_start <= 1690) {
+          fill(20)
+          noStroke()
+          rectMode(CORNER)
+          rect(w / 2 - h * 0.2, h / 2 - 12, map(frameCount - scene_0_start - 1560, 0, 140, 20, h * 0.4), 24, 12, 0, 0, 12)
+          rectMode(CENTER)
+          noFill()
+          strokeWeight(2)
+          stroke(20)
+          rect(w / 2, h / 2, h * 0.4, 24, 12)
+
+        } else {
+          noStroke()
+          if (!endIntro) {
+            fill(128)
+          } else {
+            fill(50)
+          }
+
+          rectMode(CENTER)
+          rect(w / 2, h / 2, 300, 50, 4, 4, 4, 4)
           textAlign(CENTER)
           textStyle(BOLD)
-          textSize(map((frameCount-scene_0_start)%30,0,7,35,50))
-          text("?", w/2, h/2, 50, 50)
-          pop()
+          textSize(24)
+          fill(230)
+          text('Start your story', w / 2, h / 2, 300, 24)
+          if (!speech8.isPlaying() && !endIntro) {
+            endIntro = true
+            startGame.play()
+          }
+
         }
+        pop()
       }
     }
 
 
+    pop()
   }
 
   // ========================== scene one ==============================
   if (scene === 1) {
-    textfield.show()
-    videoCapture.hide()
-
-    // show text particles
-    for (let i = 0; i < textParticles.length; i++) {
-      textParticles[i].show()
-    }
-
-    // creature dance
     push()
-    noStroke()
-    rectMode(CENTER)
-    translate(width / 2, height * 0.4)
-
-    push()
-    fill(22)
-    ellipse(0, 0, h / 2, h / 2)
-    pop()
-
-    tentacle = words.length * 2 > 24 ? 24 : words.length * 2
-    tentacle = tentacle == 0 ? 1 : tentacle
-    if (tentacle != 1 && tentacle % 2 == 1) {
-      tentacle++
-    }
-
-    hearts = words_len % 20
-    hearts = hearts == 0 ? 1 : hearts
-
-    for (let j = 0; j < tentacle; j++) {
-      rotate(TWO_PI * j / tentacle)
-      push()
-
-      for (let i = 0; i < hearts; i++) {
-        translate(0, -height / 20)
-        rotate(sin(i * 800 / (mouseX + 0.1)) + j / 50 + frameCount / 50 + i * 600 / (mouseY + 0.1))
-        scale(noise(j, frameCount / 50) / 2 + 0.6 + map(mouseX, 0, width, -0.1, 0.2))
-        fill(red_colors[i % red_colors.length])
-
-        push()
-        scale(noise(i, j, frameCount / 50) * map(hearts, 1, 50, 0.7, 0.5))
-        rotate(-PI * 1 / 4)
-        rect(0, -15, 30, 60, 40, 40, 0, 0)
-        rotate(PI * 2 / 4)
-        rect(0, -15, 30, 60, 40, 40, 0, 0)
-        pop()
-
-        if (hearts > 12) {
-          push()
-          for (let k = 0; k < 2; k++) {
-            fill((red_colors[(red_colors.length - k) % red_colors.length]))
-            if (k % 2 == 0) {
-              rect(sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2)
-            } else {
-              ellipse(sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2)
-            }
-          }
-          pop()
-        }
+    if (frameCount - scene_1_start < 240) {
+      if (!speech9.isPlaying() && speechCount == 8) {
+        speech9.play()
+        speechCount++
       }
+      typing2()
+      if (random(1) < 0.2) {
+        sinParticles.push(new SinParticle(w / 2 + random(-h * 0.5, h * 0.5), random(h * 0.2, h * 0.8), 1))
+      }
+
+      for (const p of sinParticles) {
+        p.show()
+      }
+    } else {
+      if (hideSingal) {
+        hideSingal = false
+      }
+      textfield.show()
+      // show text particles
+      for (let i = 0; i < textParticles.length; i++) {
+        textParticles[i].show()
+      }
+      // creature dance
+      push()
+      noStroke()
+      rectMode(CENTER)
+      translate(width / 2, height * 0.4)
+
+      push()
+      fill(22)
+      ellipse(0, 0, h / 2, h / 2)
+      pop()
+
+      tentacle = words.length * 2 > 24 ? 24 : words.length * 2
+      tentacle = tentacle == 0 ? 1 : tentacle
+      if (tentacle != 1 && tentacle % 2 == 1) {
+        tentacle++
+      }
+
+      hearts = words_len % 20
+      hearts = hearts == 0 ? 1 : hearts
+
+      for (let j = 0; j < tentacle; j++) {
+        rotate(TWO_PI * j / tentacle)
+        push()
+
+        for (let i = 0; i < hearts; i++) {
+          translate(0, -height / 20)
+          rotate(sin(i * 800 / (mouseX + 0.1)) + j / 50 + frameCount / 50 + i * 600 / (mouseY + 0.1))
+          scale(noise(j, frameCount / 50) / 2 + 0.6 + map(mouseX, 0, width, -0.1, 0.2))
+          fill(red_colors[i % red_colors.length])
+
+          push()
+          scale(noise(i, j, frameCount / 50) * map(hearts, 1, 50, 0.7, 0.5))
+          rotate(-PI * 1 / 4)
+          rect(0, -15, 30, 60, 40, 40, 0, 0)
+          rotate(PI * 2 / 4)
+          rect(0, -15, 30, 60, 40, 40, 0, 0)
+          pop()
+
+          if (hearts > 12) {
+            push()
+            for (let k = 0; k < 2; k++) {
+              fill((red_colors[(red_colors.length - k) % red_colors.length]))
+              if (k % 2 == 0) {
+                rect(sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2)
+              } else {
+                ellipse(sin(frameCount / 20 + i + k) * 50, cos(frameCount / 20 + i + k) * 50, 2, 2)
+              }
+            }
+            pop()
+          }
+        }
+        pop()
+      }
+      pop()
+
+      // hint
+      push()
+      textSize(16)
+      textAlign(CENTER)
+      fill(color('#222'))
+      text(responses[responseNumber], w / 2 - 200, h * 0.82, 400, 150)
       pop()
     }
     pop()
-
-    // hint
-    push()
-    textSize(16)
-    textAlign(CENTER)
-    fill(color('#222'))
-    text('Honey, say something, bad or good, everything is ok.', w / 2 - 200, h * 0.82, 400, 150)
-    pop()
-
   }
   // ========================== scene two ==============================
   else if (scene === 2) {
+
     textfield.hide()
-    videoCapture.hide()
-    image(paintCanvas, 0, 0)
-    if (mouseIsPressed) {
-      paintTracks.add(int(mouseX) + '-' + int(mouseY))
-    }
-
     push()
-    noStroke()
-    rectMode(CENTER)
-    translate(width / 2, height * 0.4)
-
-    push()
-    fill(22)
-    ellipse(0, 0, h / 2, h / 2)
-    pop()
-    //  perlinCanvas.background(255)
-    // draw user's paint
-    if (frameCount - scene_2_start < 150) {
-      for (let i = perlinParticles.length - 1; i >= 0; i--) {
-        perlinParticles[i].show(random(green_colors))
-        if (perlinParticles[i].hasDone) {
-          perlinParticles.splice(i, 1)
-        }
+    if (frameCount - scene_2_start < 240) {
+      if (!speech10.isPlaying() && speechCount == 9) {
+        speech10.play()
+        speechCount++
+      }
+      typing3()
+      if (random(1) < 0.5) {
+        sinParticles.push(new SinParticle(w / 2 + random(-h * 0.5, h * 0.5), random(h * 0.2, h * 0.8), 2))
+      }
+      for (const p of sinParticles) {
+        p.show()
       }
     } else {
-      if (canAdd && wealth / cost > gainRatio) {
-        gainRatio = wealth / cost
-        canAdd = false
-        paintings++
-        console.log(gainRatio);
-
-        // play gain sound
+      if (hideSingal) {
+        hideSingal = false
       }
+
+      image(paintCanvas, 0, 0)
+      if (mouseIsPressed) {
+        paintTracks.add(int(mouseX) + '-' + int(mouseY))
+      }
+
+      push()
+      noStroke()
+      rectMode(CENTER)
+      translate(width / 2, height * 0.4)
+
+      push()
+      fill(22)
+      ellipse(0, 0, h / 2, h / 2)
+      pop()
+
+      // draw user's paint
+      if (frameCount - wealth_start < 150) {
+        for (let i = perlinParticles.length - 1; i >= 0; i--) {
+          perlinParticles[i].show(random(green_colors))
+          if (perlinParticles[i].hasDone) {
+            perlinParticles.splice(i, 1)
+          }
+        }
+      } else {
+        if (canAdd && wealth / cost > gainRatio) {
+          gainRatio = wealth / cost
+          canAdd = false
+          paintings++
+          console.log(gainRatio);
+
+          // play gain sound
+        }
+      }
+      wealth = wealthRecord.size
+      image(perlinCanvas, -h / 4, -h / 4)
+
+      pop()
+
+      push()
+      for (const pos of paintTracks) {
+        const x_y = pos.split('-')
+        drawTrack(int(x_y[0]), int(x_y[1]))
+      }
+      pop()
+
+      // hint
+      push()
+      textSize(16)
+      textAlign(CENTER)
+      fill(color('#222'))
+      text('Draw down your wealth.', w / 2 - 150, h * 0.81, 300, 150)
+      text(tip, w / 2 - 200, h * 0.84, 400, 150)
+      text(`Cost:${cost} - Wealth:${wealth}`, w / 2 - 200, h * 0.87, 400, 150)
+      pop()
     }
-    wealth = wealthRecord.size
-    image(perlinCanvas, -h / 4, -h / 4)
-
     pop()
-
-    push()
-    for (const pos of paintTracks) {
-      const x_y = pos.split('-')
-      drawTrack(int(x_y[0]), int(x_y[1]))
-    }
-    pop()
-
-    // hint
-    push()
-    textSize(16)
-    textAlign(CENTER)
-    fill(color('#222'))
-    text('Draw down your wealth.', w / 2 - 150, h * 0.81, 300, 150)
-    text('Someone can always cost the least to gain the greatest', w / 2 - 200, h * 0.84, 400, 150)
-    text(`Cost:${cost} - Wealth:${wealth}`, w / 2 - 200, h * 0.87, 400, 150)
-    pop()
-
-
   }
   // ========================== scene three ==============================
   else if (scene === 3) {
     textfield.hide()
-    videoCapture.hide()
-    const level = mic?.getLevel() ? int(mic.getLevel()) : 0
-    if (level >= 80) {
-      accumlate_high = (accumlate_high + 4) % 84
-    } else if (level >= 20) {
-      accumlate_low = (accumlate_low + 2) % 32
-    }
-    const accumlate = level >= 80 ? accumlate_high : accumlate_low
-
-    // record vol and freq
-    if (level >= 20) {
-      if (voiceRecord.has(level)) {
-        const obj = voiceRecord.get(level)
-        obj.count++
-        obj.accumlate = (obj.accumlate + accumlate) / 2
-      } else {
-        voiceRecord.set(level, { "count": 1, "accumlate": accumlate })
+    push()
+    if (frameCount - scene_3_start < 240) {
+      if (!speech11.isPlaying() && speechCount == 10) {
+        speech11.play()
+        speechCount++
       }
-    }
+      typing4()
+      if (random(1) < 0.5) {
+        sinParticles.push(new SinParticle(w / 2 + random(-h * 0.5, h * 0.5), random(h * 0.2, h * 0.8), 3))
+      }
+      for (const p of sinParticles) {
+        p.show()
+      }
+    } else {
+      if(hideSingal){
+        hideSingal=false
+      }
+      const level = mic?.getLevel() ? int(mic.getLevel()) : 0
+      if (level >= 100) {
+        accumlate_high = (accumlate_high + 4) % 84
+      } else if (level >= 25) {
+        accumlate_low = (accumlate_low + 2) % 32
+      }
+      const accumlate = level >= 100 ? accumlate_high : accumlate_low
 
-    // pick up the vol and freq which show up mostly
-    if (level < 20 && voiceRecord.size != 0) {
-      let most = 0
-      let freq = 0
-      let vol = 0
-      for (key of voiceRecord.keys()) {
-        const value = voiceRecord.get(key)
-        if (value.count > most) {
-          freq = value.accumlate
-          vol = key
-          most = value.count
+      // record vol and freq
+      if (level >= 25) {
+        if (voiceRecord.has(level)) {
+          const obj = voiceRecord.get(level)
+          obj.count++
+          obj.accumlate = (obj.accumlate + accumlate) / 2
+        } else {
+          voiceRecord.set(level, { "count": 1, "accumlate": accumlate })
         }
       }
-      previousLevel = vol
-      previousAccumlate = freq
-      voiceRecord.clear()
+
+      // pick up the vol and freq which show up mostly
+      if (level < 25 && voiceRecord.size != 0) {
+        let most = 0
+        let freq = 0
+        let vol = 0
+        for (key of voiceRecord.keys()) {
+          const value = voiceRecord.get(key)
+          if (value.count > most) {
+            freq = value.accumlate
+            vol = key
+            most = value.count
+          }
+        }
+        previousLevel = vol
+        previousAccumlate = freq
+        voiceRecord.clear()
+      }
+
+      // gain blue colors
+      voicesLevel.add(int(level))
+      voices = voicesLevel.size
+
+      // electric connection, circle background
+      push()
+      rectMode(CENTER)
+      translate(width / 2, height * 0.4)
+      noStroke()
+      if (micIsActive) {
+        rotate(frameCount / 500)
+      }
+
+
+
+      // circle background
+
+      fill(22)
+      if (level > 25) {
+        ellipse(0, 0, h / 2 - map(level, 30, 255, 0, h / 8), h / 2 - map(level, 30, 255, 0, h / 8))
+      } else {
+        ellipse(0, 0, h / 2, h / 2)
+      }
+
+
+
+      // anchor decoration and text annoation 
+      let radius_voice = level > 25 ? radius - map(level, 30, 255, 0, h / 8) : radius
+      fill(0)
+      for (i = 0; i < 12; i++) {
+        rect(radius_voice * cos(i * TWO_PI / 12), radius_voice * sin(i * TWO_PI / 12), 8)
+      }
+
+      rect(radius * 1.12, 0, 20, 5)
+      rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
+      textSize(14)
+      textStyle(BOLD)
+      text('0°', radius * 1.20, 5)
+      text('180°', -radius * 1.35, 5)
+
+
+      const start = level > 25? (radius - map(level, 30, 200, 1, 50)) : radius
+      const end = level > 25 ? (radius - map(level, 30, 200, 1, 50)) * -1 : -radius
+
+   
+
+      // main axis  
+      push()
+      drawingContext.shadowOffsetX = 0;
+      drawingContext.shadowOffsetY = -2;
+      drawingContext.shadowBlur = 20;
+      drawingContext.shadowColor = '#eeeeee77';
+
+        main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100),blue_colors[blue_colors.length-1])
+        main_lp_1.show(start, 0, end, 0, 10, 2, blue_colors[blue_colors.length-2])
+      
+
+      pop()
+
+      // hint
+      pop()
+      push()
+      textSize(16)
+      textAlign(CENTER)
+      fill(color('#222'))
+      text('Speak out your eager to power', w / 2 - 200, h * 0.82, 400, 150)
+      text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.86)
+      pop()
     }
-
-    // gain blue colors
-    voicesLevel.add(int(level))
-    voices = voicesLevel.size
-
-    // electric connection, circle background
-    push()
-    rectMode(CENTER)
-    translate(width / 2, height * 0.4)
-    noStroke()
-    if (micIsActive) {
-      rotate(frameCount / 500)
-    }
-
-
-
-    // circle background
-
-    fill(22)
-    if (level > 20) {
-      ellipse(0, 0, h / 2 - map(level, 30, 255, 0, h / 8), h / 2 - map(level, 30, 255, 0, h / 8))
-    } else {
-      ellipse(0, 0, h / 2, h / 2)
-    }
-
-
-
-    // anchor decoration and text annoation 
-    let radius_voice = level > 20 ? radius - map(level, 30, 255, 0, h / 8) : radius
-    fill(0)
-    for (i = 0; i < 12; i++) {
-      rect(radius_voice * cos(i * TWO_PI / 12), radius_voice * sin(i * TWO_PI / 12), 8)
-    }
-
-    rect(radius * 1.12, 0, 20, 5)
-    rect(radius * 1.12 * cos(TWO_PI * 6 / 12), radius * 1.15 * sin(TWO_PI * 6 / 12), 20, 5)
-    textSize(14)
-    textStyle(BOLD)
-    text('0°', radius * 1.20, 5)
-    text('180°', -radius * 1.35, 5)
-
-
-    const start = level > 20 ? (radius - map(level, 30, 200, 1, 50)) : radius
-    const end = level > 20 ? (radius - map(level, 30, 200, 1, 50)) * -1 : -radius
-
-    const r_1 = int(map(noise(previousLevel, previousAccumlate), 0, 1, 0, colorLength))
-    const r_2 = int(map(noise(previousAccumlate, previousLevel), 0, 1, 0, 4))
-
-    // main axis  
-    push()
-    drawingContext.shadowOffsetX = 0;
-    drawingContext.shadowOffsetY = -2;
-    drawingContext.shadowBlur = 20;
-    drawingContext.shadowColor = '#eeeeee77';
-    if (level > 0) {
-      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100), colorSet[r_1][r_2])
-      main_lp_1.show(start, 0, end, 0, 10, 2, colorSet[r_1][(r_2 + 1) % 4])
-    } else {
-      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100), "#F4F4F6")
-      main_lp_1.show(start, 0, end, 0, 10, 2, '#E6E6E9')
-    }
-
     pop()
-
-    // hint
-    pop()
-    push()
-    textSize(16)
-    textAlign(CENTER)
-    fill(color('#222'))
-    text('Speak out your eager to power', w / 2 - 200, h * 0.82, 400, 150)
-    text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.86)
-    pop()
-
   }
+
+  // ========================== scene four ==============================
   else if (scene === 4) {
     if (!videoCapture) {
       videoCapture = createCapture(VIDEO)
@@ -1061,8 +1280,7 @@ function draw() {
 
   }
 
-  // if (scene !== 4 && scene !== 0) {
-  if (scene !== 0) {
+  if (scene !== 0 && !hideSingal) {
     if (scene !== 4) {
       // =============== color signal =================
       push()
@@ -1082,24 +1300,14 @@ function draw() {
     rectMode(CENTER)
     fill(50, 255)
     noStroke()
-    rect(w * 0.05, h / 2, 10, 50, 20)
     rect(w * 0.95, h / 2, 10, 50, 20)
     pop()
   }
 
-
   // mouse hover 
-  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
+  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3 && !hideSingal) {
     cursor(HAND)
-  } else if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && scene !== 0) {
-    push()
-    rectMode(CENTER)
-    fill(50, 255)
-    noStroke()
-    rect(w * 0.05, h / 2, 15, 50, 20)
-    pop()
-    cursor(HAND)
-  } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && scene !== 0) {
+  } else if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && scene !== 0 && !hideSingal) {
     push()
     rectMode(CENTER)
     fill(50, 255)
@@ -1113,6 +1321,8 @@ function draw() {
     cursor(HAND)
   } else if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && !action) {
     cursor(HAND)
+  } else if (mouseX <= w / 2 + 150 && mouseX >= w / 2 - 150 && mouseY >= h / 2 - 25 && mouseY <= h / 2 + 25 && scene === 0 && !startStory && endIntro) {
+    cursor(HAND)
   }
   else {
     cursor(ARROW)
@@ -1120,7 +1330,7 @@ function draw() {
 }
 
 function mouseClicked() {
-  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3) {
+  if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3 && !hideSingal) {
     micIsActive = !micIsActive
 
     // todo: play sound
@@ -1139,43 +1349,26 @@ function mouseClicked() {
     }
 
   }
-  if (mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && scene !== 0) {
-    switch (scene) {
-      case 1:
-        scene = 3;
-        break
-      case 2:
-        scene = 1;
-        break
-      case 3:
-        scene = 2
-        break
-      case 4:
-        scene = 3
-        break
-    }
-
-
-  }
-  if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30) {
+  if (mouseX >= w * 0.95 - 10 && mouseX <= w * 0.95 + 10 && mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30 && !hideSingal) {
     switch (scene) {
       case 1:
         scene = 2;
+        bgm_1.stop()
+        scene_2_start = frameCount
         break
       case 2:
         scene = 3;
+        scene_3_start = frameCount
         break
       case 3:
         scene = 4
         break
-      case 4:
-        scene = 1
-        break
-
     }
+    sinParticles = []
+    hideSingal = true
 
   }
-  if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && action === false) {
+  if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && !action) {
     action = true
 
     scene_0_start = frameCount
@@ -1188,8 +1381,15 @@ function mouseClicked() {
     hasReflection = true
     img = videoCapture.get(videoW / 4, videoH / 4, videoW, videoH)
   }
-
+  if (mouseX <= w / 2 + 150 && mouseX >= w / 2 - 150 && mouseY >= h / 2 - 25 && mouseY <= h / 2 + 25 && scene === 0 && !startStory && endIntro) {
+    startStory = true
+    scene = 1
+    speech8.stop()
+    scene_1_start = frameCount
+  }
 }
+
+
 function mouseReleased() {
   if (scene == 2 &&
     !(mouseX >= w * 0.05 - 10 && mouseX <= w * 0.05 + 10 &&
@@ -1232,8 +1432,10 @@ function mouseReleased() {
     paintCanvas.clear()
     perlinCanvas.clear()
     wealthRecord.clear()
-    scene_2_start = frameCount
+    wealth_start = frameCount
     canAdd = true
+    drawSound.play()
+    tip = 'Are you satisfied how you gain? if not, keep trying!'
   }
 }
 

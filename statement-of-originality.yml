@@ -15,8 +15,16 @@ assets:
     url: https://pixabay.com/music/search/documentary/
     licence:  
 
-  - comment: keyboadsound
+  - comment: keyboadmp3
     url: https://freesound.org/data/previews/537/537244_1920058-lq.mp3
+    licence:
+
+  - comment: start.mp3
+    url: https://freesound.org/data/previews/537/537244_1920058-lq.mp3
+    licence:
+  
+  - comment: ship.mp3
+    url: https://freesound.org/people/Pfannkuchn/sounds/360631/
     licence:
   
   - comment: marcopolo map
@@ -43,7 +51,13 @@ assets:
     url:  https://images.app.goo.gl/QFeDXtT5eZ34Bbpj8
     licence: the public License.
 
-  
+    - comment: reflection sound
+    url:  https://freesound.org/data/previews/572/572624_10182789-lq.mp3
+    licence: the Creative Commons 0 License.
+  - comment: draw sound
+    url:     https://freesound.org/data/previews/362/362241_5061679-lq.mp3
+    licence: the Creative Commons 0 License.
+
   # https://images.app.goo.gl/HK4YxqMMjEm98aZj6
   # https://images.app.goo.gl/cVYMw8mULGT4MJaN8s
   # https://images.app.goo.gl/375fBp4ucRorTGrM7
