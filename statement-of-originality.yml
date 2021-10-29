@@ -10,31 +10,31 @@ declaration: >-
 assets:
   - comment: background music story.mp3
     url: https://pixabay.com/music/search/documentary/
-    licence:  
+    licence:  the Creative Commons 0 License.
 
   - comment: keyboadmp3
     url: https://freesound.org/data/previews/537/537244_1920058-lq.mp3
-    licence:
+    licence: the Creative Commons 0 License.
 
   - comment: start.mp3
     url: https://freesound.org/data/previews/537/537244_1920058-lq.mp3
-    licence:
+    licence: the Creative Commons 0 License.
   
   - comment: ship.mp3
     url: https://freesound.org/people/Pfannkuchn/sounds/360631/
-    licence:
+    licence: the Creative Commons 0 License.
   
   - comment: marcopolo map
     url: https://images.app.goo.gl/sFkr7jXzvFDHpRfh7
-    licence:
+    licence: the public License.
    
   - comment: funny Ferdinand Magellan 
     url:  https://images.app.goo.gl/dKRJECZPjPn4igZ9A
-    licence:
+    licence: the public License.
   
   - comment: normal Ferdinand Magellan 
     url:   https://images.app.goo.gl/ZtKT32tzjUAoHSQg7
-    licence:
+    licence: the public License.
 
   - comment: thunder sound
     url:  https://freesound.org/people/Josh74000MC/sounds/475177/
@@ -59,6 +59,7 @@ assets:
   - comment: horse sound
     url:     https://freesound.org/people/D4XX/sounds/564628/
     licence: the Creative Commons 0 License.
+    
   - comment: horse sound
     url:     https://freesound.org/people/ash_rez/sounds/518888/
     licence: the Creative Commons 0 License.
