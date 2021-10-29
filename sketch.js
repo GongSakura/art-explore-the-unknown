@@ -11,7 +11,7 @@ let background_noise
 let radius
 let hideSingal = true
 // five scenes, 0,1,2,3,4
-let scene = 0
+let scene = 4
 
 let sinParticles = []
 // grainy effect for background
@@ -47,7 +47,7 @@ let blue_colors = ['#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2
 let red_colors_gained = [...red_colors]
 let blue_colors_gained = [...blue_colors]
 let green_colors_gained = [...green_colors]
-let color_gained = [...red_colors,...green_colors,...blue_colors]
+let color_gained = [...red_colors, ...green_colors, ...blue_colors]
 function SinParticle(x, y, type) {
   this.o = createVector(x, y)
   this.r = random(5, 50)
@@ -62,19 +62,19 @@ function SinParticle(x, y, type) {
   }
   switch (type) {
     case 1:
-  
-      this.f =random(red_colors)
+
+      this.f = random(red_colors)
       break
     case 2:
-      this.f=random(green_colors)
+      this.f = random(green_colors)
       break
     case 3:
-      this.f=random(blue_colors)
-     
+      this.f = random(blue_colors)
+
       break
 
   }
-  
+
   this.show = () => {
     push()
     noStroke()
@@ -655,20 +655,23 @@ let img
 let reflectionCanvas
 let renderCount = 0
 let renderTimes = 330
-let previousVector=null
-let faceRotate=0
+let previousVector = null
+let faceRotate = 0
 let masks = []
 let maskIndex = 0
 var facePoints = null
 let danceMonkeySound
-let reflectionResult =''
+let reflectionResult = ''
+let inputWords = ['Happy', '快樂', 'heureux', '행복하다', 'ハッピー', 'счастливый']
+let streams = []
+let wordSize = 30
 function reflection(x, y, c, canvas) {
   canvas.push()
   canvas.stroke(c)
   canvas.strokeWeight(0.5)
   canvas.noFill()
-  canvas.translate(x,y)
-  canvas.curve(x, y, sin(x)*random(60), cos(x)*sin(x)*40, 0,0,cos(y)*sin(x)*random(140) ,cos(x)*sin(x)*50)
+  canvas.translate(x, y)
+  canvas.curve(x, y, sin(x) * random(60), cos(x) * sin(x) * 40, 0, 0, cos(y) * sin(x) * random(140), cos(x) * sin(x) * 50)
   canvas.pop()
 
 }
@@ -688,12 +691,12 @@ function preload() {
   franklin_img1 = loadImage('assets/Franklin2.png')
   franklin_img2 = loadImage('assets/Franklin3.png')
   astronaut_img = loadImage('assets/astronaut.png')
-    masks.push(loadImage('assets/mask1.png'))
+  masks.push(loadImage('assets/mask1.png'))
   moon_img = loadImage('assets/moon.png')
-  for(let i =1; i<=6 ;i++){
+  for (let i = 1; i <= 6; i++) {
     masks.push(loadImage(`assets/mask${i}.png`))
   }
- 
+
   thunder_sound = loadSound('assets/thunder.mp3')
   story_sound = loadSound('assets/story.mp3')
   ship_sound = loadSound('assets/ship.mp3')
@@ -745,6 +748,10 @@ function setup() {
   videoMask.rectMode(CENTER)
   reflectionCanvas = createGraphics(h / 2, h / 2)
   tempCanvas = createGraphics(w, h * 0.7)
+
+  for (let i = 0; i < 24; i++) {
+    streams.push(new Stream(i % inputWords.length, i * 40 + width / 2 - 480, 0))
+  }
 }
 
 function draw() {
@@ -1141,7 +1148,7 @@ function draw() {
       // gain blue colors
       let old_len = voicesLevel.size
       voicesLevel.add(int(level))
-      if(old_len<voicesLevel.size){
+      if (old_len < voicesLevel.size) {
         interaction_3++
       }
 
@@ -1234,7 +1241,7 @@ function draw() {
       videoMask.noStroke()
       videoMask.ellipse(0, 0, h / 3, h / 2)
       videoMask.pop()
-    
+
       imageMode(CENTER)
       img = videoCapture.get(videoW / 4, videoH / 4, videoW, videoH)
       img.mask(videoMask)
@@ -1252,48 +1259,52 @@ function draw() {
       fill(0)
       text('Mirror, mirror tell me how I look like', 0, h * 0.25, 400, 50)
       pop()
-    } 
-    else{
+    }
+    else {
       push()
-      if(facePoints){
+      if (facePoints) {
         push()
-        let faceH = Math.abs(facePoints[10].y-facePoints[152].y) *600
-        let faceW = Math.abs(facePoints[234].x-facePoints[454].x) *800
+        let faceH = Math.abs(facePoints[10].y - facePoints[152].y) * 600
+        let faceW = Math.abs(facePoints[234].x - facePoints[454].x) * 800
         let origin = facePoints[5]
-        translate(w/2-320,h/2-240)
-        if(previousVector==null){
-          previousVector = createVector((facePoints[5].x-facePoints[10].x),(facePoints[5].y-facePoints[10].y))
+        translate(w / 2 - 320, h / 2 - 240)
+        if (previousVector == null) {
+          previousVector = createVector((facePoints[5].x - facePoints[10].x), (facePoints[5].y - facePoints[10].y))
           previousVector = p5.Vector.normalize(previousVector)
-        }else{
-          let cur = createVector((facePoints[5].x-facePoints[10].x),(facePoints[5].y-facePoints[10].y))
+        } else {
+          let cur = createVector((facePoints[5].x - facePoints[10].x), (facePoints[5].y - facePoints[10].y))
           cur = p5.Vector.normalize(cur)
-          faceRotate=Math.acos(cur.x*previousVector.x+cur.y*previousVector.y)
-          if(cur.x>0){
-            faceRotate*=-1
+          faceRotate = Math.acos(cur.x * previousVector.x + cur.y * previousVector.y)
+          if (cur.x > 0) {
+            faceRotate *= -1
           }
         }
         rectMode(CENTER)
         imageMode(CENTER)
-        
+
         push()
-        translate(origin.x*800-faceW/2,origin.y*600-faceH/2)
+        translate(origin.x * 800 - faceW / 2, origin.y * 600 - faceH / 2)
         rotate(faceRotate)
-        image(maskIndex,0,0,faceW,faceH)
+        image(maskIndex, 0, 0, faceW, faceH)
         pop()
-  
-    
-     pop()
+
+
+        pop()
+        for (const s of streams) {
+          s.show()
+        }
       }
       textAlign(CENTER)
       textSize(16)
       textStyle(BOLD)
-      text(reflectionResult,w/2-200,h/2+200,400,200)
+      text(reflectionResult, w / 2 - 200, h / 2 + 200, 400, 200)
       pop()
+
     }
   }
 
   if (scene !== 0 && !hideSingal) {
-  
+
     // =============== switch button =================
     push()
     rectMode(CENTER)
@@ -1376,10 +1387,10 @@ function mouseClicked() {
   if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4 && !hasReflection) {
     hasReflection = true
     window.getFace(videoCapture.elt)
-    maskIndex=random(masks)
+    maskIndex = random(masks)
     danceMonkeySound.play()
     reflectionResult = 'Just forget about what you did just now, get up!, life can be suck no matter how hard your try. Live in the moment, be positive.'
-    
+
   }
   if (mouseX <= w / 2 + 150 && mouseX >= w / 2 - 150 && mouseY >= h / 2 - 25 && mouseY <= h / 2 + 25 && scene === 0 && !startStory && endIntro) {
     startStory = true
@@ -1455,7 +1466,7 @@ function WordSymbol(word, x, y, speed) {
   this.y = y
   this.word = word
   this.speed = speed
-  this.opacity = 255
+  this.opacity = 150
   this.update = () => {
     if (this.y >= height) {
       this.y = 0
@@ -1467,7 +1478,7 @@ function WordSymbol(word, x, y, speed) {
   }
 
   this.show = function () {
-    fill(220, this.opacity)
+    fill(50, this.opacity)
     textSize(wordSize)
     textStyle(NORMAL)
     text(this.word, this.x, this.y)

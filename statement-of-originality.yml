@@ -5,9 +5,6 @@ declaration: >-
   I declare that everything I have submitted in this assignment is entirely my
   own work, with the following exceptions:
 
-
-
-
 # add as many "url+licence+comment" entries as necessary
 # (or remove it altogether if you haven't used any external assets)
 assets:
@@ -51,9 +48,10 @@ assets:
     url:  https://images.app.goo.gl/QFeDXtT5eZ34Bbpj8
     licence: the public License.
 
-    - comment: reflection sound
+  - comment: reflection sound
     url:  https://freesound.org/data/previews/572/572624_10182789-lq.mp3
     licence: the Creative Commons 0 License.
+
   - comment: draw sound
     url:     https://freesound.org/data/previews/362/362241_5061679-lq.mp3
     licence: the Creative Commons 0 License.
@@ -61,12 +59,19 @@ assets:
   - comment: africa mask
     url:     https://www.pngsucai.com/down/167270.html
     licence: free license
-  # https://images.app.goo.gl/HK4YxqMMjEm98aZj6
-  # https://images.app.goo.gl/cVYMw8mULGT4MJaN8s
-  # https://images.app.goo.gl/375fBp4ucRorTGrM7
-  # https://images.app.goo.gl/T1Vy9n4nskUxQUH3A
-  # https://previews.123rf.com/images/rocich/rocich1209/rocich120900015/15101432-.jpg
-  # https://previews.123rf.com/images/rocich/rocich1209/rocich120900027/15101426-.jpg
+
+  - comment: franklin.png
+    url:    https://images.app.goo.gl/HK4YxqMMjEm98aZj6，https://images.app.goo.gl/cVYMw8mULGT4MJaN8
+    licence: public license
+
+  - comment: skeleton .png
+    url:   https://images.app.goo.gl/375fBp4ucRorTGrM7
+    licence: public license
+
+  - comment: kite .png
+    url:   https://images.app.goo.gl/T1Vy9n4nskUxQUH3A
+    licence: public license
+
 # sign *your* name and uid here
-name:
-uid:
+name: Yuxuan Yang
+uid: u7078049
