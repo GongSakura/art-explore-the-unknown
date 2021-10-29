@@ -8,7 +8,7 @@ declaration: >-
 # add as many "url+licence+comment" entries as necessary
 # (or remove it altogether if you haven't used any external assets)
 assets:
-  - comment: background music
+  - comment: background music story.mp3
     url: https://pixabay.com/music/search/documentary/
     licence:  
 
@@ -55,7 +55,14 @@ assets:
   - comment: draw sound
     url:     https://freesound.org/data/previews/362/362241_5061679-lq.mp3
     licence: the Creative Commons 0 License.
-  
+
+  - comment: horse sound
+    url:     https://freesound.org/people/D4XX/sounds/564628/
+    licence: the Creative Commons 0 License.
+  - comment: horse sound
+    url:     https://freesound.org/people/ash_rez/sounds/518888/
+    licence: the Creative Commons 0 License.
+
   - comment: africa mask
     url:     https://www.pngsucai.com/down/167270.html
     licence: free license
@@ -71,6 +78,14 @@ assets:
   - comment: kite .png
     url:   https://images.app.goo.gl/T1Vy9n4nskUxQUH3A
     licence: public license
+    
+  - comment: dance Monkey.mp3
+    url:   https://opradre.com/dance-monkey-tones-and-i-mp3-download/
+    licence: public license
+  
+  - comment: speech1-11.mp3 I use the text to reader tool to convert my script to voice
+    url:   https://ttsmp3.com/
+    licence: free license
 
 # sign *your* name and uid here
 name: Yuxuan Yang
