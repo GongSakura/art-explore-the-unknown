@@ -1,5 +1,5 @@
 /**
- * Player using text input, mouse drawing, microphone input to genernate artworks
+ * after watching a short annimation, Player using text input, mouse drawing, microphone input to genernate artworks
  */
 
 
@@ -60,22 +60,25 @@ function SinParticle(x, y, type) {
     this.a += TWO_PI / 30 * this.d
     this.opacity = this.opacity < 0 ? 200 : this.opacity - 5
   }
+  switch (type) {
+    case 1:
+  
+      this.f =random(red_colors)
+      break
+    case 2:
+      this.f=random(green_colors)
+      break
+    case 3:
+      this.f=random(blue_colors)
+     
+      break
+
+  }
+  
   this.show = () => {
     push()
     noStroke()
-    switch (type) {
-      case 1:
-        fill(this.c, 0, 0, this.opacity)
-        break
-      case 2:
-        fill(0, this.c, 0, this.opacity)
-        break
-      case 3:
-        fill(0, 0, this.c, this.opacity)
-        break
-
-    }
-
+    fill(this.f)
     ellipse(this.o.x + cos(this.a) * this.r, this.o.y + sin(this.a) * this.r, this.s, this.s)
     pop()
     this.update()
@@ -331,7 +334,7 @@ let speech9
 let bgm_1
 // ** to record the first letter of each input **
 // if player can enter up to 26, then it will gained all the red colors
-let alphabet = 0
+let interaction_1 = 0
 let responses = ['Honey, say something.',
   'I can’t wait to spend the rest of our lives together',
   'Did you know that you make the world a better place?',
@@ -414,9 +417,10 @@ function inputText() {
 
   textParticles = []
   let sentences = textfield.value()
+  inputWords.push(sentences)
   words_len = sentences.length
   words = sentences.split(' ')
-  alphabet = alphabet > 26 ? 26 : alphabet + 1
+  interaction_1 = interaction_1 > 26 ? 26 : interaction_1 + 1
 
   textfield.value('')
   let limit = words_len > 200 ? 1 : words.length > 6 ? 6 : words.length
@@ -462,7 +466,7 @@ function typing2() {
 
 // ** to record the number of different draws **
 // if next one is more complicated than last one, if plyer can draw up to 10 complex painting, it will gained all the green colors
-let paintings = 0
+let interaction_2 = 0
 let paintCanvas
 let perlinCanvas
 let paintTracks = new Set()
@@ -479,7 +483,6 @@ let gainSound
 let drawSound
 let speech10
 let tip = "Someone can always cost the least to gain the greatest."
-
 function PerlinParticle(x, y) {
   this.pos = createVector(x, y)
   this.speed = random(0.004, 0.006)
@@ -553,7 +556,7 @@ function typing3() {
 // ============= scene three config =============
 // ** to record the volumn of different speaking **
 // if player's voice volumn can reach all levels, then it will gained all the blue colors
-let voices = 0
+let interaction_3 = 0
 let voicesLevel = new Set()
 let linkParticles = []
 let mic = null
@@ -652,47 +655,25 @@ let hasReflection = false
 let img
 let reflectionCanvas
 let renderCount = 0
-let renderTimes = 300
-let facePoints = null
-let loadFace = false
-let faceR
-let faceG
-let faceB
-let changeFaceColor
+let renderTimes = 330
+let previousVector=null
+let faceRotate=0
 let masks = []
-let faceRotate =0
-let previousCenter = null
+let maskIndex = 0
+var facePoints = null
+let danceMonkeySound
+var reflecitonResult =''
 function reflection(x, y, c, canvas) {
-
-
   canvas.push()
   canvas.stroke(c)
-  canvas.strokeWeight(1.5)
+  canvas.strokeWeight(0.5)
   canvas.noFill()
-  // curve(x1, y1, x2, y2, x3, y3, x4, y4)
-  let r1 = random(words_len)
-  let r2 = random(cost)
-  let r3 = random(previousAccumlate)
-  canvas.curve(x, y, x + r1, y + sin(x + r1), x + r2, y + sin(x + r2), x + r3, y + sin(r3 + x))
+  canvas.translate(x,y)
+  canvas.curve(x, y, sin(x)*random(60), cos(x)*sin(x)*40, 0,0,cos(y)*sin(x)*random(140) ,cos(x)*sin(x)*50)
   canvas.pop()
 
 }
 
-// wearing mask
-const faceMesh = new FaceMesh({
-  locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-  }
-});
-faceMesh.setOptions({
-  maxNumFaces: 1,
-  minDetectionConfidence: 0.5,
-  minTrackingConfidence: 0.5
-});
-faceMesh.onResults(getFacePoints);
-function getFacePoints(result) {
-  facePoints = result
-}
 // ================= main program ===================
 
 function preload() {
@@ -710,6 +691,10 @@ function preload() {
   astronaut_img = loadImage('assets/astronaut.png')
     masks.push(loadImage('assets/mask1.png'))
   moon_img = loadImage('assets/moon.png')
+  for(let i =1; i<=6 ;i++){
+    masks.push(loadImage(`assets/mask${i}.png`))
+  }
+ 
   thunder_sound = loadSound('assets/thunder.mp3')
   story_sound = loadSound('assets/story.mp3')
   ship_sound = loadSound('assets/ship.mp3')
@@ -729,6 +714,7 @@ function preload() {
   bubble_pop = loadSound('assets/bubble_pop.mp3')
   gainSound = loadSound('assets/gain.mp3')
   drawSound = loadSound('assets/draw.mp3')
+  danceMonkeySound = loadSound('assets/danceMonkey.mp3')
   bgm_1 = loadSound('assets/past-lives.mp3')
   startGame = loadSound('assets/start.mp3')
 
@@ -758,11 +744,9 @@ function setup() {
   videoMask = createGraphics(h / 2, h / 2)
   videoMask.translate(h / 4, h / 4)
   videoMask.rectMode(CENTER)
-
   reflectionCanvas = createGraphics(h / 2, h / 2)
   tempCanvas = createGraphics(w, h * 0.7)
 }
-
 
 function draw() {
   image(background_noise, 0, 0)
@@ -1069,7 +1053,7 @@ function draw() {
         if (canAdd && wealth / cost > gainRatio) {
           gainRatio = wealth / cost
           canAdd = false
-          paintings++
+          interaction_2++
           console.log(gainRatio);
 
           // play gain sound
@@ -1093,7 +1077,7 @@ function draw() {
       textAlign(CENTER)
       fill(color('#222'))
       text('Draw down your wealth.', w / 2 - 150, h * 0.81, 300, 150)
-      text(tip, w / 2 - 200, h * 0.84, 400, 150)
+      text(tip, w / 2 - 250, h * 0.84, 500, 150)
       text(`Cost:${cost} - Wealth:${wealth}`, w / 2 - 200, h * 0.87, 400, 150)
       pop()
     }
@@ -1126,7 +1110,6 @@ function draw() {
         accumlate_low = (accumlate_low + 2) % 32
       }
       const accumlate = level >= 100 ? accumlate_high : accumlate_low
-
       // record vol and freq
       if (level >= 25) {
         if (voiceRecord.has(level)) {
@@ -1157,8 +1140,11 @@ function draw() {
       }
 
       // gain blue colors
+      let old_len = voicesLevel.size
       voicesLevel.add(int(level))
-      voices = voicesLevel.size
+      if(old_len<voicesLevel.size){
+        interaction_3++
+      }
 
       // electric connection, circle background
       push()
@@ -1169,18 +1155,13 @@ function draw() {
         rotate(frameCount / 500)
       }
 
-
-
       // circle background
-
       fill(22)
       if (level > 25) {
         ellipse(0, 0, h / 2 - map(level, 30, 255, 0, h / 8), h / 2 - map(level, 30, 255, 0, h / 8))
       } else {
         ellipse(0, 0, h / 2, h / 2)
       }
-
-
 
       // anchor decoration and text annoation 
       let radius_voice = level > 25 ? radius - map(level, 30, 255, 0, h / 8) : radius
@@ -1270,40 +1251,48 @@ function draw() {
       fill(255)
       text('REFLECTION', 0, h * 0.3, 200, 50)
       fill(0)
-      text('Mirror, mirror tell me what I will look like', 0, h * 0.25, 400, 50)
+      text('Mirror, mirror tell me how I look like', 0, h * 0.25, 400, 50)
       pop()
-    }
-    else {
-
-      push()
-   
-      if (facePoints != null) {
-
-        strokeWeight(3)
-        translate(w / 2 - 400, h / 2 - 300)
-        textSize(8)
-        textAlign(CENTER)
-        fill(0)
-       
-      
-        for (let i = 0; i < facePoints.multiFaceLandmarks[0]?.length; i++) {
-          let x = facePoints.multiFaceLandmarks[0][i].x * 800
-          let y = facePoints.multiFaceLandmarks[0][i].y * 600
-          // text(i,x,y,8,8)
-          drawFace(int(x),int(y))
-          // point(x, y)
+    } 
+    else{
+      if(facePoints){
+        push()
+        // fill(20)
+        // stroke(20)
+        // strokeWeight(2)
+        // for(let i =0;i<facePoints.length;i++){
+        //   point(facePoints[i].x*800,facePoints[i].y*600)
+        // }
+        let faceH = Math.abs(facePoints[10].y-facePoints[152].y) *600
+        let faceW = Math.abs(facePoints[234].x-facePoints[454].x) *800
+        let origin = facePoints[5]
+        translate(w/2-320,h/2-240)
+        if(previousVector==null){
+          previousVector = createVector((facePoints[5].x-facePoints[10].x),(facePoints[5].y-facePoints[10].y))
+          previousVector = p5.Vector.normalize(previousVector)
+        }else{
+          let cur = createVector((facePoints[5].x-facePoints[10].x),(facePoints[5].y-facePoints[10].y))
+          cur = p5.Vector.normalize(cur)
+          faceRotate=Math.acos(cur.x*previousVector.x+cur.y*previousVector.y)
+          if(cur.x<0){
+            faceRotate*=-1
+          }
         }
+        rectMode(CENTER)
+        imageMode(CENTER)
         
-   
+        push()
+        translate(origin.x*800-faceW/2,origin.y*600-faceH/2)
+        rotate(faceRotate)
+        image(maskIndex,0,0,faceW,faceH)
+        pop()
+  
+        pop()
        
- 
       }
-
-      pop()
-      setTimeout(() => {
-        faceMesh.send({ image: videoCapture.elt })
-      }, 50)
+      
     }
+    
 
 
   }
@@ -1314,11 +1303,11 @@ function draw() {
       push()
       noStroke()
       rectMode(CENTER)
-      fill(map(alphabet, 0, 26, 20, 180), 0, 0, map(alphabet, 0, 26, 20, 180))
+      fill(map(interaction_1, 0, 26, 20, 180), 0, 0, map(interaction_1, 0, 26, 20, 180))
       rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-      fill(0, map(paintings, 0, 10, 20, 180), 0, map(paintings, 0, 10, 20, 180))
+      fill(0, map(interaction_2, 0, 10, 20, 180), 0, map(interaction_2, 0, 10, 20, 180))
       rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
-      fill(0, 0, map(voices, 0, 255, 20, 180), map(voices, 0, 255, 20, 180))
+      fill(0, 0, map(interaction_3, 0, 255, 20, 180), map(interaction_3, 0, 255, 20, 180))
       rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
       pop()
     }
@@ -1398,16 +1387,21 @@ function mouseClicked() {
   }
   if (mouseX <= w / 2 + 100 && mouseX >= w / 2 - 60 && mouseY >= h / 2 - 20 && mouseY <= h / 2 + 120 && scene === 0 && !action) {
     action = true
-
     scene_0_start = frameCount
     speech1.play()
     keyboard.play()
     story_sound.play()
     speechCount++
   }
-  if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4) {
+  if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4 && !hasReflection) {
     hasReflection = true
-    faceMesh.send({ image: videoCapture.elt })
+    window.getFace(videoCapture.elt)
+    maskIndex=random(masks)
+    danceMonkeySound.play()
+    if(interaction_1>interaction_2 && interaction_1>interaction_3){
+
+    }
+    
   }
   if (mouseX <= w / 2 + 150 && mouseX >= w / 2 - 150 && mouseY >= h / 2 - 25 && mouseY <= h / 2 + 25 && scene === 0 && !startStory && endIntro) {
     startStory = true
@@ -1472,35 +1466,51 @@ function mouseReleased() {
 // a "thumbnail.png" file) to your downloads folder. this is a good starting
 // point for the final thumbnail of your project (this allows us to make a
 // showcase of everyone's work like we did for the nametag assignment).
-//
+
 // remember that you need to resize the file to 1280x720, and you will probably
 // want to delete this bit for your final submission.
-// function keyTyped() {
-//   if (key === " ") {
-//     saveCanvas("thumbnail.png");
-//   }
-// }
-
-function drawFace(x,y){
-  push()
-  noFill()
-  stroke(50,200)
-  strokeWeight(3)
-  point(x,y)
-
-  // facePoints.multiFaceLandmarks[0]?.forEach((p)=>{
-  
-  //   const d=dist(x,y,p.x*800,p.y*600);
-  //   if (d<10){
-  //   stroke(0)
-  //   strokeWeight(random(0.1,1))
-  //     line(x,y,p.x*800,p.y*600)
-  //   }
-  // })
-
-  
-  pop()
-
+function keyTyped() {
+  if (key === " ") {
+    saveCanvas("thumbnail.png");
+  }
 }
 
+function WordSymbol(word, x, y, speed) {
+  this.x = x
+  this.y = y
+  this.word = word
+  this.speed = speed
+  this.opacity = 255
+  this.update = () => {
+    if (this.y >= height) {
+      this.y = 0
+      this.opacity = 255
+    } else {
+      this.y = this.y + this.speed
+      this.opacity -= 2
+    }
+  }
 
+  this.show = function () {
+    fill(220, this.opacity)
+    textSize(wordSize)
+    textStyle(NORMAL)
+    text(this.word, this.x, this.y)
+    this.update()
+  }
+
+}
+function Stream(index, x, y) {
+  this.str = inputWords[index]
+  this.wordSymbols = []
+  this.speed = random(5, 10)
+  for (let char of this.str) {
+    this.wordSymbols.push(new WordSymbol(char, x, y, this.speed))
+    y += wordSize
+  }
+  this.show = () => {
+    for (const w of this.wordSymbols) {
+      w.show()
+    }
+  }
+}
