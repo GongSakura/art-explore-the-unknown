@@ -11,7 +11,7 @@ let background_noise
 let radius
 let hideSingal = true
 // five scenes, 0,1,2,3,4
-let scene = 4
+let scene = 0
 
 let sinParticles = []
 // grainy effect for background
@@ -417,7 +417,6 @@ function inputText() {
 
   textParticles = []
   let sentences = textfield.value()
-  inputWords.push(sentences)
   words_len = sentences.length
   words = sentences.split(' ')
   interaction_1 = interaction_1 > 26 ? 26 : interaction_1 + 1
@@ -662,7 +661,7 @@ let masks = []
 let maskIndex = 0
 var facePoints = null
 let danceMonkeySound
-var reflecitonResult =''
+let reflectionResult =''
 function reflection(x, y, c, canvas) {
   canvas.push()
   canvas.stroke(c)
@@ -999,7 +998,7 @@ function draw() {
       textSize(16)
       textAlign(CENTER)
       fill(color('#222'))
-      text(responses[responseNumber], w / 2 - 200, h * 0.82, 400, 150)
+      text(responses[responseNumber], w / 2 - 200, h * 0.80, 400, 150)
       pop()
     }
     pop()
@@ -1202,7 +1201,7 @@ function draw() {
       textSize(16)
       textAlign(CENTER)
       fill(color('#222'))
-      text('Speak out your eager to power', w / 2 - 200, h * 0.82, 400, 150)
+      text('Speak out your eager to power', w / 2 - 200, h * 0.81, 400, 150)
       text(`Vol: ${previousLevel - 4} - Freq: ${previousAccumlate - 3}`, w / 2, h * 0.86)
       pop()
     }
@@ -1255,14 +1254,9 @@ function draw() {
       pop()
     } 
     else{
+      push()
       if(facePoints){
         push()
-        // fill(20)
-        // stroke(20)
-        // strokeWeight(2)
-        // for(let i =0;i<facePoints.length;i++){
-        //   point(facePoints[i].x*800,facePoints[i].y*600)
-        // }
         let faceH = Math.abs(facePoints[10].y-facePoints[152].y) *600
         let faceW = Math.abs(facePoints[234].x-facePoints[454].x) *800
         let origin = facePoints[5]
@@ -1274,7 +1268,7 @@ function draw() {
           let cur = createVector((facePoints[5].x-facePoints[10].x),(facePoints[5].y-facePoints[10].y))
           cur = p5.Vector.normalize(cur)
           faceRotate=Math.acos(cur.x*previousVector.x+cur.y*previousVector.y)
-          if(cur.x<0){
+          if(cur.x>0){
             faceRotate*=-1
           }
         }
@@ -1287,31 +1281,19 @@ function draw() {
         image(maskIndex,0,0,faceW,faceH)
         pop()
   
-        pop()
-       
-      }
-      
-    }
     
-
-
+     pop()
+      }
+      textAlign(CENTER)
+      textSize(16)
+      textStyle(BOLD)
+      text(reflectionResult,w/2-200,h/2+200,400,200)
+      pop()
+    }
   }
 
   if (scene !== 0 && !hideSingal) {
-    if (scene !== 4) {
-      // =============== color signal =================
-      push()
-      noStroke()
-      rectMode(CENTER)
-      fill(map(interaction_1, 0, 26, 20, 180), 0, 0, map(interaction_1, 0, 26, 20, 180))
-      rect(w / 2 - h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-      fill(0, map(interaction_2, 0, 10, 20, 180), 0, map(interaction_2, 0, 10, 20, 180))
-      rect(w / 2, h * 0.76, h * 0.03, h * 0.03)
-      fill(0, 0, map(interaction_3, 0, 255, 20, 180), map(interaction_3, 0, 255, 20, 180))
-      rect(w / 2 + h * 0.05, h * 0.76, h * 0.03, h * 0.03)
-      pop()
-    }
-
+  
     // =============== switch button =================
     push()
     rectMode(CENTER)
@@ -1349,8 +1331,6 @@ function draw() {
 function mouseClicked() {
   if (mouseX >= w / 2 - h / 4 && mouseX <= w / 2 + h / 4 && mouseY >= h * 0.15 && mouseY <= h * 0.65 && scene == 3 && !hideSingal) {
     micIsActive = !micIsActive
-
-    // todo: play sound
     if (micIsActive) {
       if (!mic) {
         mic = new p5.AudioIn(() => {
@@ -1398,9 +1378,7 @@ function mouseClicked() {
     window.getFace(videoCapture.elt)
     maskIndex=random(masks)
     danceMonkeySound.play()
-    if(interaction_1>interaction_2 && interaction_1>interaction_3){
-
-    }
+    reflectionResult = 'Just forget about what you did just now, get up!, life can be suck no matter how hard your try. Live in the moment, be positive.'
     
   }
   if (mouseX <= w / 2 + 150 && mouseX >= w / 2 - 150 && mouseY >= h / 2 - 25 && mouseY <= h / 2 + 25 && scene === 0 && !startStory && endIntro) {
@@ -1420,9 +1398,6 @@ function mouseReleased() {
       mouseY >= h / 2 - 30 && mouseY <= h / 2 + 30)) {
     // remove all perlin particles
     perlinParticles = []
-    // for (let i = perlinParticles.length - 1; i >= 0; i++) {
-    //   // delete perlinParticles[i]
-    // }
     let sum_x = 0
     let sum_y = 0
     let largest_x = 0
@@ -1462,18 +1437,18 @@ function mouseReleased() {
 }
 
 
-// when you hit the spacebar, what's currently on the canvas will be saved (as
-// a "thumbnail.png" file) to your downloads folder. this is a good starting
-// point for the final thumbnail of your project (this allows us to make a
-// showcase of everyone's work like we did for the nametag assignment).
+// // when you hit the spacebar, what's currently on the canvas will be saved (as
+// // a "thumbnail.png" file) to your downloads folder. this is a good starting
+// // point for the final thumbnail of your project (this allows us to make a
+// // showcase of everyone's work like we did for the nametag assignment).
 
-// remember that you need to resize the file to 1280x720, and you will probably
-// want to delete this bit for your final submission.
-function keyTyped() {
-  if (key === " ") {
-    saveCanvas("thumbnail.png");
-  }
-}
+// // remember that you need to resize the file to 1280x720, and you will probably
+// // want to delete this bit for your final submission.
+// function keyTyped() {
+//   if (key === " ") {
+//     saveCanvas("thumbnail.png");
+//   }
+// }
 
 function WordSymbol(word, x, y, speed) {
   this.x = x
