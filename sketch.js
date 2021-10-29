@@ -11,7 +11,7 @@ let background_noise
 let radius
 let hideSingal = true
 // five scenes, 0,1,2,3,4
-let scene = 4
+let scene = 0
 
 let sinParticles = []
 // grainy effect for background
