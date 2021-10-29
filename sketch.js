@@ -2,6 +2,7 @@
  * Player using text input, mouse drawing, microphone input to genernate artworks
  */
 
+
 // ============= global config =============
 // screen w and h
 let w = 0
@@ -46,7 +47,7 @@ let blue_colors = ['#9AD1D4', '#80CED7', '#007EA7', '#003249', '#61a5c2', '#89c2
 let red_colors_gained = [...red_colors]
 let blue_colors_gained = [...blue_colors]
 let green_colors_gained = [...green_colors]
-
+let color_gained = [...red_colors,...green_colors,...blue_colors]
 function SinParticle(x, y, type) {
   this.o = createVector(x, y)
   this.r = random(5, 50)
@@ -562,7 +563,7 @@ let currentLevel = 0
 let accumlate_low = 1
 let accumlate_high = 1
 let micIsActive = false
-let scene_3_start=0
+let scene_3_start = 0
 let voiceRecord = new Map()
 let circleParticles = []
 let main_lp_2 = new LinkParticle("#F4F4F6", 4)
@@ -652,7 +653,15 @@ let img
 let reflectionCanvas
 let renderCount = 0
 let renderTimes = 300
-
+let facePoints = null
+let loadFace = false
+let faceR
+let faceG
+let faceB
+let changeFaceColor
+let masks = []
+let faceRotate =0
+let previousCenter = null
 function reflection(x, y, c, canvas) {
 
 
@@ -669,7 +678,21 @@ function reflection(x, y, c, canvas) {
 
 }
 
-
+// wearing mask
+const faceMesh = new FaceMesh({
+  locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+  }
+});
+faceMesh.setOptions({
+  maxNumFaces: 1,
+  minDetectionConfidence: 0.5,
+  minTrackingConfidence: 0.5
+});
+faceMesh.onResults(getFacePoints);
+function getFacePoints(result) {
+  facePoints = result
+}
 // ================= main program ===================
 
 function preload() {
@@ -685,6 +708,7 @@ function preload() {
   franklin_img1 = loadImage('assets/Franklin2.png')
   franklin_img2 = loadImage('assets/Franklin3.png')
   astronaut_img = loadImage('assets/astronaut.png')
+    masks.push(loadImage('assets/mask1.png'))
   moon_img = loadImage('assets/moon.png')
   thunder_sound = loadSound('assets/thunder.mp3')
   story_sound = loadSound('assets/story.mp3')
@@ -707,6 +731,7 @@ function preload() {
   drawSound = loadSound('assets/draw.mp3')
   bgm_1 = loadSound('assets/past-lives.mp3')
   startGame = loadSound('assets/start.mp3')
+
 }
 
 function setup() {
@@ -1091,8 +1116,8 @@ function draw() {
         p.show()
       }
     } else {
-      if(hideSingal){
-        hideSingal=false
+      if (hideSingal) {
+        hideSingal = false
       }
       const level = mic?.getLevel() ? int(mic.getLevel()) : 0
       if (level >= 100) {
@@ -1172,10 +1197,10 @@ function draw() {
       text('180°', -radius * 1.35, 5)
 
 
-      const start = level > 25? (radius - map(level, 30, 200, 1, 50)) : radius
+      const start = level > 25 ? (radius - map(level, 30, 200, 1, 50)) : radius
       const end = level > 25 ? (radius - map(level, 30, 200, 1, 50)) * -1 : -radius
 
-   
+
 
       // main axis  
       push()
@@ -1184,9 +1209,9 @@ function draw() {
       drawingContext.shadowBlur = 20;
       drawingContext.shadowColor = '#eeeeee77';
 
-        main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100),blue_colors[blue_colors.length-1])
-        main_lp_1.show(start, 0, end, 0, 10, 2, blue_colors[blue_colors.length-2])
-      
+      main_lp_2.show(start, 0, end, 0, 10 + previousAccumlate, map(previousLevel, 0, 255, 0, 100), blue_colors[blue_colors.length - 1])
+      main_lp_1.show(start, 0, end, 0, 10, 2, blue_colors[blue_colors.length - 2])
+
 
       pop()
 
@@ -1206,13 +1231,17 @@ function draw() {
   // ========================== scene four ==============================
   else if (scene === 4) {
     if (!videoCapture) {
-      videoCapture = createCapture(VIDEO)
+      // videoCapture = createCapture(VIDEO)
+      videoCapture = createCapture("#face")
+      videoCapture.elt.onloadmetadata = () => {
+        window.requestAnimationFrame(function () {
+          faceMesh.send({ image: videoCapture.elt })
+        })
+      }
       videoCapture.hide()
       videoW = h / 2
       videoH = h / 3
     }
-
-
     if (!hasReflection) {
       push()
       translate(w / 2, h / 2)
@@ -1225,7 +1254,7 @@ function draw() {
       videoMask.noStroke()
       videoMask.ellipse(0, 0, h / 3, h / 2)
       videoMask.pop()
-
+    
       imageMode(CENTER)
       img = videoCapture.get(videoW / 4, videoH / 4, videoW, videoH)
       img.mask(videoMask)
@@ -1243,38 +1272,37 @@ function draw() {
       fill(0)
       text('Mirror, mirror tell me what I will look like', 0, h * 0.25, 400, 50)
       pop()
-    } else {
+    }
+    else {
+
       push()
-      translate(w / 2, h / 2)
-      noStroke()
-      rectMode(CENTER)
-      imageMode(CENTER)
-      if (renderCount < renderTimes) {
+   
+      if (facePoints != null) {
 
-        reflectionCanvas.noStroke()
-        for (let i = 0; i < 100; i++) {
-          let x = random(videoW)
-          let y = random(videoH)
-          let c = img.get(x, y)
-          if (c[0] < 1) {
-            continue
-          }
-          reflection(x, y, c[0] * 0.3 + c[1] * 0.6 + c[2] * 0.1, reflectionCanvas)
-
+        strokeWeight(3)
+        translate(w / 2 - 400, h / 2 - 300)
+        textSize(8)
+        textAlign(CENTER)
+        fill(0)
+       
+      
+        for (let i = 0; i < facePoints.multiFaceLandmarks[0]?.length; i++) {
+          let x = facePoints.multiFaceLandmarks[0][i].x * 800
+          let y = facePoints.multiFaceLandmarks[0][i].y * 600
+          // text(i,x,y,8,8)
+          drawFace(int(x),int(y))
+          // point(x, y)
         }
-        renderCount++
-        image(reflectionCanvas, 0, h * 0.1, h / 2, h / 2)
-      } else {
-        image(reflectionCanvas, 0, h * 0.1, h / 2, h / 2)
+        
+   
+       
+ 
       }
-      push()
-      textSize(16)
-      fill(0)
-      textAlign(CENTER)
-      text('Do you satisfy the outcome generated by yourself? If not, do you regret that you did not explore more on some aspects as they were boring, hard or uncertainty? \nRemember all beauty is reserved for persistent, brave people ', 20, h * 0.3, 450, 100)
-      pop()
 
       pop()
+      setTimeout(() => {
+        faceMesh.send({ image: videoCapture.elt })
+      }, 50)
     }
 
 
@@ -1379,7 +1407,7 @@ function mouseClicked() {
   }
   if (mouseX >= w / 2 - 100 && mouseX <= w / 2 + 100 && mouseY <= h * 0.8 && mouseY >= h * 0.8 - 30 && scene === 4) {
     hasReflection = true
-    img = videoCapture.get(videoW / 4, videoH / 4, videoW, videoH)
+    faceMesh.send({ image: videoCapture.elt })
   }
   if (mouseX <= w / 2 + 150 && mouseX >= w / 2 - 150 && mouseY >= h / 2 - 25 && mouseY <= h / 2 + 25 && scene === 0 && !startStory && endIntro) {
     startStory = true
@@ -1452,3 +1480,27 @@ function mouseReleased() {
 //     saveCanvas("thumbnail.png");
 //   }
 // }
+
+function drawFace(x,y){
+  push()
+  noFill()
+  stroke(50,200)
+  strokeWeight(3)
+  point(x,y)
+
+  // facePoints.multiFaceLandmarks[0]?.forEach((p)=>{
+  
+  //   const d=dist(x,y,p.x*800,p.y*600);
+  //   if (d<10){
+  //   stroke(0)
+  //   strokeWeight(random(0.1,1))
+  //     line(x,y,p.x*800,p.y*600)
+  //   }
+  // })
+
+  
+  pop()
+
+}
+
+
